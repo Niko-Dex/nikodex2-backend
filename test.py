@@ -1,16 +1,21 @@
 import os
-import mysql.connector
+from dotenv import load_dotenv
+from sqlalchemy.orm import Session
+from sqlalchemy import create_engine, text, select
 
-session = mysql.connector.connect(
-    host=os.environ['MYSQL_URI'],
-    port=os.environ['MYSQL_PORT'],
-    user=os.environ['MYSQL_USER'],
-    password=os.environ['MYSQL_PASS'])
+from models import Niko
 
-cur = session.cursor()
-cur.execute("USE nikodex;")
+load_dotenv()
 
-cur.execute("SELECT * FROM nikos;")
+connection_str = "mysql+mysqlconnector://{}:{}@{}:{}/{}" \
+    .format(os.environ['MYSQL_USER'], os.environ['MYSQL_PASS'], os.environ['MYSQL_URI'], os.environ['MYSQL_PORT'], "nikodex")
+    
+engine = create_engine(connection_str, echo=True)
 
-row = cur.fetchone()
-print(row)
+session = Session(engine)
+stmt = select(Niko).join(Niko.abilities)
+
+for niko in session.scalars(stmt):
+    print(niko)
+    for ability in niko.abilities:
+        print(ability)

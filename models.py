@@ -1,9 +1,55 @@
-class Niko:
-    def __init__(self, id, name, description):
+from typing import List
+from sqlalchemy import String
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import relationship
+
+class Base(DeclarativeBase):
+    pass
+
+class Niko(Base):
+    __tablename__ = "nikos"
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str] = mapped_column(String())
+    image: Mapped[str] = mapped_column(String())
+    doc: Mapped[str] = mapped_column(String(45))
+    full_desc: Mapped[str] = mapped_column(String())
+    
+    abilities: Mapped[List["Ability"]] = relationship(
+        back_populates="niko"
+    )
+    
+    def __init__(self, id, name, description, full_desc, image):
         self.id = id
         self.name = name
         self.description = description
+        self.full_desc = full_desc
+        self.image = image
+        self.abilities = list()
+        
+    def __repr__(self):
+        return f"Niko(id={self.id};name={self.name};description={self.description};full_desc={self.full_desc};image={self.image})"
+        
+    def set_abilities_list(self, lis: list):
+        self.abilities = lis
 
-def niko_convert(s: tuple):
-    id, name, description = s[0], s[1], s[2]
-    return Niko(id, name, description)
+class Ability(Base):
+    __tablename__ = "abilities"
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(45))
+    niko_id: Mapped[int] = mapped_column(ForeignKey("nikos.id"))
+    
+    niko: Mapped["Niko"] = relationship(back_populates="abilities") 
+    
+    def __init__(self, id, name, niko_id):
+        self.id = id
+        self.name = name;
+        self.niko_id = niko_id
+        
+    def __repr__(self):
+        return f"Ability(id={self.id};name={self.name};niko_id={self.niko_id})"
