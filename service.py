@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from models import Niko, Ability
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, text, select
+from sqlalchemy import create_engine, text, select, func
 
 load_dotenv()
 
@@ -28,6 +28,18 @@ def get_by_name(name: str):
         result_list.append(niko)
         print(niko.abilities)
     return session.scalars(stmt).fetchall()
+
+def get_niko_by_id(id: int):
+    stmt = select(Niko).join(Niko.abilities).where(Niko.id == id)
+    res = session.scalars(stmt).one()
+    print(res.abilities)
+    return res
+
+def get_nikos_count():
+    #count = int(session.query(func.count(Niko.id)).one())
+    #dict_res = dict()
+    #dict_res["count"] = count
+    return session.query(func.count(Niko.id)).one()[0]
 
 def get_abilities():
     stmt = select(Ability)
