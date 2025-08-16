@@ -9,7 +9,7 @@ load_dotenv()
 
 connection_str = "mysql+mysqlconnector://{}:{}@{}:{}/{}" \
     .format(os.environ['MYSQL_USER'], os.environ['MYSQL_PASS'], os.environ['MYSQL_URI'], os.environ['MYSQL_PORT'], "nikodex")
-    
+
 engine = create_engine(connection_str, echo=True)
 
 session = Session(engine)
