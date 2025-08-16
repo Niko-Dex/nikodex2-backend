@@ -2,3 +2,4 @@
 *.db-journal
 .venv
 __pycache__
+.env

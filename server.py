@@ -1,11 +1,13 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
 import service
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    service.close_connection()
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+app = FastAPI(lifespan=lifespan)
 
 @app.get("/niko/all")
 def get_all_nikos():
