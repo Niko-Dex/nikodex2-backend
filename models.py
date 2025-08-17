@@ -1,5 +1,6 @@
+from datetime import datetime
 from typing import List
-from sqlalchemy import String
+from sqlalchemy import DateTime, String
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
@@ -54,7 +55,16 @@ class Ability(Base):
 
     def __repr__(self):
         return f"Ability(id={self.id};name={self.name};niko_id={self.niko_id})"
+
+class Blog(Base):
+    __tablename__ = "blogs"
     
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(255))
+    author: Mapped[str] = mapped_column(String(255))
+    content: Mapped[str] = mapped_column(String())
+    post_datetime: Mapped[datetime] = mapped_column(DateTime())
+
 class User(Base):
     __tablename__ = "users"
     

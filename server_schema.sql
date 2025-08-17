@@ -19,6 +19,9 @@
 -- Table structure for table `abilities`
 --
 
+CREATE SCHEMA IF NOT EXISTS nikodex;
+USE nikodex;
+
 DROP TABLE IF EXISTS `abilities`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -38,8 +41,35 @@ CREATE TABLE `abilities` (
 
 LOCK TABLES `abilities` WRITE;
 /*!40000 ALTER TABLE `abilities` DISABLE KEYS */;
-INSERT INTO `abilities` VALUES (1,'Holder of Sun',1);
+INSERT INTO `abilities` VALUES (1,'Holder Of The Sun',1);
 /*!40000 ALTER TABLE `abilities` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `blogs`
+--
+
+DROP TABLE IF EXISTS `blogs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `blogs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `title` tinytext,
+  `author` tinytext,
+  `content` text,
+  `post_datetime` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `blogs`
+--
+
+LOCK TABLES `blogs` WRITE;
+/*!40000 ALTER TABLE `blogs` DISABLE KEYS */;
+INSERT INTO `blogs` VALUES (1,'string','nikodev','blep','2025-08-17 17:37:59');
+/*!40000 ALTER TABLE `blogs` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -58,7 +88,7 @@ CREATE TABLE `nikos` (
   `author` tinytext,
   `full_desc` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,7 +97,7 @@ CREATE TABLE `nikos` (
 
 LOCK TABLES `nikos` WRITE;
 /*!40000 ALTER TABLE `nikos` DISABLE KEYS */;
-INSERT INTO `nikos` VALUES (1,'Niko','The Messiah.','','','nightmargin','The Messiah\'s full desc'),(2,'nikodev','Shy inventor, beloved by the community','nikodev.png','','nikodev','Inventor of his own gun. He is making a rival to RPGMaker, too.');
+INSERT INTO `nikos` VALUES (1,'Niko','The Messiah.','','','nightmargin','The Messiah\'s full desc');
 /*!40000 ALTER TABLE `nikos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -106,4 +136,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-17 13:04:28
+-- Dump completed on 2025-08-17 17:57:41

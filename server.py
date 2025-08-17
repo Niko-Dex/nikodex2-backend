@@ -19,8 +19,11 @@ tags_metadata = [
         "name": "abilities"
     },
     {
+        "name": "blogs"
+    },
+    {
         "name": "auth"
-    }
+    },
 ]
 
 SECRET_KEY = os.environ['SECRET_KEY']
@@ -116,7 +119,10 @@ def get_niko_by_name(name = "Niko"):
 
 @app.get("/nikos/", response_model=dto.NikoResponse, tags=['nikos'])
 def get_niko_by_id(id = 1):
-    return service.get_niko_by_id(id)
+    res = service.get_niko_by_id(id)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
+    return res
 
 @app.post("/nikos", tags=['nikos'])
 async def post_niko(niko: dto.NikoRequest, current_user: Annotated[User, Depends(get_current_user)]):
@@ -159,6 +165,29 @@ def update_ability(id: int, ability: dto.AbilityRequest, current_user: Annotated
 def delete_ability(id: int, current_user: Annotated[User, Depends(get_current_user)]):
     service.delete_ability(id)
     return {"msg":"Deleted Ability."}
+
+@app.get("/blogs", response_model=List[dto.BlogResponse], tags=['blogs'])
+def get_all_blogs():
+    return service.get_blogs()
+
+@app.get("/blogs/", response_model=dto.BlogResponse, tags=['blogs'])
+def get_blog_by_id(id: int):
+    return service.get_blog_by_id(id)
+
+@app.post("/blogs", tags=['blogs'])
+def post_blog(blog: dto.BlogRequest, current_user: Annotated[User, Depends(get_current_user)]):
+    service.post_blog(blog)
+    return {"msg":"Posted Blog."}
+
+@app.put("/blogs", tags=['blogs'])
+def update_blog(id: int, blog: dto.BlogRequest, current_user: Annotated[User, Depends(get_current_user)]):
+    service.update_blog(id, blog)
+    return {"msg":"Updated Blog."}
+
+@app.delete("/blogs", tags=['blogs'])
+def delete_blog(id: int, current_user: Annotated[User, Depends(get_current_user)]):
+    service.delete_blog(id)
+    return {"msg":"Deleted Blog."}
 
 @app.post("/token", tags=['auth'])
 async def login_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:

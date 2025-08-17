@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 from pydantic import BaseModel
 
@@ -18,3 +19,12 @@ class NikoRequest(BaseModel):
 class NikoResponse(NikoRequest):
     id: int
     abilities: List[AbilityResponse]
+    
+class BlogRequest(BaseModel):
+    title: str
+    author: str
+    content: str
+    
+class BlogResponse(BlogRequest):
+    id: int
+    post_datetime: datetime
