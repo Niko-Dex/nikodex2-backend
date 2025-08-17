@@ -126,18 +126,24 @@ def get_niko_by_id(id = 1):
 
 @app.post("/nikos", tags=['nikos'])
 async def post_niko(niko: dto.NikoRequest, current_user: Annotated[User, Depends(get_current_user)]):
-    service.insert_niko(niko)
-    return {"msg":"Inserted Niko."}
+    res = service.insert_niko(niko)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    return res
 
 @app.put("/nikos", tags=['nikos'])
 def update_niko(id: int, niko: dto.NikoRequest, current_user: Annotated[User, Depends(get_current_user)]):
-    service.update_niko(id, niko)
-    return {"msg":"Updated Niko."}
+    res = service.update_niko(id, niko)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    return res
 
 @app.delete("/nikos", tags=['nikos'])
 def delete_niko(id: int, current_user: Annotated[User, Depends(get_current_user)]):
-    service.delete_niko(id)
-    return {"msg":"Deleted Niko."}
+    res = service.delete_niko(id)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    return res
 
 @app.get("/nikos/count", tags=['nikos'])
 def get_niko_count():
@@ -149,22 +155,31 @@ def get_abilities():
 
 @app.get("/abilities/", response_model=dto.AbilityResponse, tags=['abilities'])
 def get_ability_by_id(id = 1):
-    return service.get_ability_by_id(id)
+    res = service.get_ability_by_id(id)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    return res
 
 @app.post("/abilities", tags=['abilities'])
 def post_ability(ability: dto.AbilityRequest, current_user: Annotated[User, Depends(get_current_user)]):
-    service.insert_ability(ability)
-    return {"msg":"Inserted Ability."}
+    res = service.insert_ability(ability)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    return res
 
 @app.put("/abilities", tags=['abilities'])
 def update_ability(id: int, ability: dto.AbilityRequest, current_user: Annotated[User, Depends(get_current_user)]):
-    service.update_ability(id, ability)
-    return {"msg":"Updated Ability."}
+    res = service.update_ability(id, ability)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    return res
 
 @app.delete("/abilities", tags=['abilities'])
 def delete_ability(id: int, current_user: Annotated[User, Depends(get_current_user)]):
-    service.delete_ability(id)
-    return {"msg":"Deleted Ability."}
+    res = service.delete_ability(id)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    return res
 
 @app.get("/blogs", response_model=List[dto.BlogResponse], tags=['blogs'])
 def get_all_blogs():
@@ -172,22 +187,31 @@ def get_all_blogs():
 
 @app.get("/blogs/", response_model=dto.BlogResponse, tags=['blogs'])
 def get_blog_by_id(id: int):
-    return service.get_blog_by_id(id)
+    res = service.get_blog_by_id(id)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    return res
 
 @app.post("/blogs", tags=['blogs'])
 def post_blog(blog: dto.BlogRequest, current_user: Annotated[User, Depends(get_current_user)]):
-    service.post_blog(blog)
-    return {"msg":"Posted Blog."}
+    res = service.post_blog(blog)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    return res
 
 @app.put("/blogs", tags=['blogs'])
 def update_blog(id: int, blog: dto.BlogRequest, current_user: Annotated[User, Depends(get_current_user)]):
-    service.update_blog(id, blog)
-    return {"msg":"Updated Blog."}
+    res = service.update_blog(id, blog)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    return res
 
 @app.delete("/blogs", tags=['blogs'])
 def delete_blog(id: int, current_user: Annotated[User, Depends(get_current_user)]):
-    service.delete_blog(id)
-    return {"msg":"Deleted Blog."}
+    res = service.delete_blog(id)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    return res
 
 @app.post("/token", tags=['auth'])
 async def login_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:
