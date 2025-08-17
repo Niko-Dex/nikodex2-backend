@@ -1,8 +1,9 @@
 import os
 from dotenv import load_dotenv
-from models import Niko, Ability
-from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, text, select, func
+from models import Niko, Ability, User
+from sqlalchemy.orm import Session, selectinload
+from sqlalchemy import and_, create_engine, text, select, insert, func
+import dto
 
 load_dotenv()
 
@@ -14,32 +15,27 @@ engine = create_engine(connection_str, echo=True)
 session = Session(engine)
 
 def get_all():
-    stmt = select(Niko).join(Niko.abilities)
-    result_list = list()
-    for niko in session.scalars(stmt):
-        result_list.append(niko)
-        print(niko.abilities)
+    stmt = select(Niko).options(selectinload(Niko.abilities))
     return session.scalars(stmt).fetchall()
 
 def get_by_name(name: str):
-    stmt = select(Niko).join(Niko.abilities).where(Niko.name.like(name))
-    result_list = list()
-    for niko in session.scalars(stmt):
-        result_list.append(niko)
-        print(niko.abilities)
+    stmt = select(Niko).options(selectinload(Niko.abilities)).where(Niko.name.like(name))
     return session.scalars(stmt).fetchall()
 
 def get_niko_by_id(id: int):
-    stmt = select(Niko).join(Niko.abilities).where(Niko.id == id)
+    stmt = select(Niko).options(selectinload(Niko.abilities)).where(Niko.id == id)
     res = session.scalars(stmt).one()
-    print(res.abilities)
     return res
 
 def get_nikos_count():
-    #count = int(session.query(func.count(Niko.id)).one())
-    #dict_res = dict()
-    #dict_res["count"] = count
     return session.query(func.count(Niko.id)).one()[0]
+
+def insert_niko(req: dto.NikoRequest):
+    stmt = insert(Niko).values(name=req.name, description=req.description,
+        image=req.image, doc="", author=req.author, full_desc=req.full_desc)
+    
+    result = session.execute(stmt)
+    session.commit()
 
 def get_abilities():
     stmt = select(Ability)
@@ -47,6 +43,10 @@ def get_abilities():
 
 def get_ability_by_id(id: int):
     stmt = select(Ability).where(Ability.id == id)
+    return session.scalars(stmt).one()
+
+def get_user_by_username(username: str):
+    stmt = select(User).where(User.username == username).limit(1)
     return session.scalars(stmt).one()
 
 def close_connection():

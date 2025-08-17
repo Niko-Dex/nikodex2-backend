@@ -54,3 +54,13 @@ class Ability(Base):
 
     def __repr__(self):
         return f"Ability(id={self.id};name={self.name};niko_id={self.niko_id})"
+    
+class User(Base):
+    __tablename__ = "users"
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str] = mapped_column(String())
+    hashed_pass: Mapped[str] = mapped_column(String())
+    
+    

@@ -1,14 +1,84 @@
-from fastapi import FastAPI
+from datetime import datetime, timedelta, timezone
+from typing import Annotated
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from pydantic import BaseModel
+import jwt
+from passlib.context import CryptContext
 from contextlib import asynccontextmanager
 import service
+import dto
 import os
+
+SECRET_KEY = os.environ['SECRET_KEY']
+ALGORITHM = os.environ['ALGORITHM']
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: str | None = None
+
+class User(BaseModel):
+    username: str
+    description: str
+    
+class UserInDb(User):
+    password: str
+
+def verify_password(plain_pass, hashed_pass):
+    return pwd_context.verify(plain_pass, hashed_pass)
+
+def get_password_hash(plain_pass):
+    return pwd_context.hash(plain_pass)
+
+def authenticate_user(username: str, password: str):
+    user = service.get_user_by_username(username)
+    if not user:
+        return False
+    if not verify_password(password, user.hashed_pass):
+        return False
+    return user
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+    to_encode.update({"exp":expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get('sub')
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username)
+    except jwt.InvalidTokenError:
+        raise credentials_exception
+    user = service.get_user_by_username(username=token_data.username)
+    if user is None:
+        raise credentials_exception
+    return user
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     yield
     service.close_connection()
-
 
 origins = os.environ["FASTAPI_ALLOWED_ORIGIN"].split(",")
 
@@ -33,6 +103,11 @@ def get_niko_by_name(name = "Niko"):
 def get_niko_by_id(id = 1):
     return service.get_niko_by_id(id)
 
+@app.post("/nikos/")
+async def post_niko(niko: dto.NikoRequest, current_user: Annotated[User, Depends(get_current_user)]):
+    service.insert_niko(niko)
+    return {"msg":"Inserted."}
+
 @app.get("/nikos/count")
 def get_niko_count():
     return service.get_nikos_count()
@@ -44,3 +119,21 @@ def get_abilities():
 @app.get("/abilities/")
 def get_ability(id = 1):
     return service.get_ability_by_id(id)
+
+@app.post("/token")
+async def login_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:
+    user = authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(data={"sub":user.username}, expires_delta=access_token_expires)
+    return Token(access_token=access_token, token_type="bearer")
+
+@app.get("/users/me", response_model=User)
+def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
+    return current_user
+    
