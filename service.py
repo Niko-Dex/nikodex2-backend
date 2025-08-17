@@ -76,8 +76,11 @@ def delete_ability(id: int):
     session.commit()
 
 def get_user_by_username(username: str):
-    stmt = select(User).where(User.username == username).limit(1)
-    return session.scalars(stmt).one()
+    try:
+        stmt = select(User).where(User.username == username).limit(1)
+        return session.scalars(stmt).one()
+    except Exception:
+        return None
 
 def close_connection():
     session.close()

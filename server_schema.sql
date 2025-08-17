@@ -19,6 +19,9 @@
 -- Table structure for table `abilities`
 --
 
+CREATE SCHEMA IF NOT EXISTS nikodex;
+USE nikodex;
+
 DROP TABLE IF EXISTS `abilities`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -67,7 +70,7 @@ CREATE TABLE `nikos` (
 
 LOCK TABLES `nikos` WRITE;
 /*!40000 ALTER TABLE `nikos` DISABLE KEYS */;
-INSERT INTO `nikos` VALUES (1,'Niko','The Messiah.','','','nightmargin','The Messiah\'s full desc'),(2,'nikodev','Shy inventor, beloved by the community','nikodev.png','','nikodev','Inventor of his own gun. He is making a rival to RPGMaker, too.');
+INSERT INTO `nikos` VALUES (1,'Niko','The Messiah.','','','nightmargin',"The Messiah's full desc"),(2,'nikodev','Shy inventor, beloved by the community','nikodev.png','','nikodev','Inventor of his own gun. He is making a rival to RPGMaker, too.');
 /*!40000 ALTER TABLE `nikos` ENABLE KEYS */;
 UNLOCK TABLES;
 
