@@ -1,6 +1,6 @@
 annotated-types==0.7.0
 anyio==4.10.0
-bcrypt==4.3.0
+bcrypt==4.0.1
 certifi==2025.8.3
 cffi==1.17.1
 click==8.2.1
