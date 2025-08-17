@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Annotated
+from typing import Annotated, List
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -10,6 +10,18 @@ from contextlib import asynccontextmanager
 import service
 import dto
 import os
+
+tags_metadata = [
+    {
+        "name": "nikos"
+    },
+    {
+        "name": "abilities"
+    },
+    {
+        "name": "auth"
+    }
+]
 
 SECRET_KEY = os.environ['SECRET_KEY']
 ALGORITHM = os.environ['ALGORITHM']
@@ -82,7 +94,10 @@ async def lifespan(app: FastAPI):
 
 origins = os.environ["FASTAPI_ALLOWED_ORIGIN"].split(",")
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title="NikodexV2 API",
+    lifespan=lifespan
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -91,36 +106,51 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/nikos/all")
+@app.get("/nikos", response_model=List[dto.NikoResponse], tags=['nikos'])
 def get_all_nikos():
     return service.get_all()
 
-@app.get("/nikos/name")
+@app.get("/nikos/name", response_model=List[dto.NikoResponse], tags=['nikos'])
 def get_niko_by_name(name = "Niko"):
     return service.get_by_name(name)
 
-@app.get("/nikos/")
+@app.get("/nikos/", response_model=dto.NikoResponse, tags=['nikos'])
 def get_niko_by_id(id = 1):
     return service.get_niko_by_id(id)
 
-@app.post("/nikos/")
+@app.post("/nikos", tags=['nikos'])
 async def post_niko(niko: dto.NikoRequest, current_user: Annotated[User, Depends(get_current_user)]):
     service.insert_niko(niko)
-    return {"msg":"Inserted."}
+    return {"msg":"Inserted Niko."}
 
-@app.get("/nikos/count")
+@app.put("/nikos", tags=['nikos'])
+def update_niko(id: int, niko: dto.NikoRequest, current_user: Annotated[User, Depends(get_current_user)]):
+    service.update_niko(id, niko)
+    return {"msg":"Updated Niko."}
+
+@app.get("/nikos/count", tags=['nikos'])
 def get_niko_count():
     return service.get_nikos_count()
 
-@app.get("/abilities")
+@app.get("/abilities", response_model=List[dto.AbilityResponse], tags=['abilities'])
 def get_abilities():
     return service.get_abilities()
 
-@app.get("/abilities/")
+@app.get("/abilities/", response_model=dto.AbilityResponse, tags=['abilities'])
 def get_ability(id = 1):
     return service.get_ability_by_id(id)
 
-@app.post("/token")
+@app.post("/abilities", tags=['abilities'])
+def post_ability(ability: dto.AbilityRequest, current_user: Annotated[User, Depends(get_current_user)]):
+    service.insert_ability(ability)
+    return {"msg":"Inserted Ability."}
+
+@app.put("/abilities", tags=['abilities'])
+def put_ability(id: int, ability: dto.AbilityRequest, current_user: Annotated[User, Depends(get_current_user)]):
+    service.update_ability(id, ability)
+    return {"msg":"Updated Ability."}
+
+@app.post("/token", tags=['auth'])
 async def login_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
@@ -133,7 +163,7 @@ async def login_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
     access_token = create_access_token(data={"sub":user.username}, expires_delta=access_token_expires)
     return Token(access_token=access_token, token_type="bearer")
 
-@app.get("/users/me", response_model=User)
+@app.get("/users/me", response_model=User, tags=['auth'])
 def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
     return current_user
     

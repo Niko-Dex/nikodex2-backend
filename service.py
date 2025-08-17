@@ -36,6 +36,15 @@ def insert_niko(req: dto.NikoRequest):
     
     result = session.execute(stmt)
     session.commit()
+    
+def update_niko(id: int, req: dto.NikoRequest):
+    entity = session.execute(select(Niko).where(Niko.id == id)).scalar_one()
+    entity.name = req.name
+    entity.description = req.description
+    entity.image = req.image
+    entity.full_desc = req.full_desc
+    entity.author = req.author
+    session.commit()
 
 def get_abilities():
     stmt = select(Ability)
@@ -44,6 +53,17 @@ def get_abilities():
 def get_ability_by_id(id: int):
     stmt = select(Ability).where(Ability.id == id)
     return session.scalars(stmt).one()
+
+def insert_ability(req: dto.AbilityRequest):
+    stmt = insert(Ability).values(name=req.name, niko_id=req.niko_id)
+    result = session.execute(stmt)
+    session.commit()
+    
+def update_ability(id: int, req: dto.AbilityRequest):
+    entity = session.execute(select(Ability).where(Ability.id == id)).scalar_one()
+    entity.name = req.name
+    entity.niko_id = req.niko_id
+    session.commit()
 
 def get_user_by_username(username: str):
     stmt = select(User).where(User.username == username).limit(1)
