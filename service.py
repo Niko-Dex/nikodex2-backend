@@ -45,6 +45,11 @@ def update_niko(id: int, req: dto.NikoRequest):
     entity.full_desc = req.full_desc
     entity.author = req.author
     session.commit()
+    
+def delete_niko(id: int):
+    entity = session.get(Niko, id)
+    session.delete(entity)
+    session.commit()
 
 def get_abilities():
     stmt = select(Ability)
@@ -63,6 +68,11 @@ def update_ability(id: int, req: dto.AbilityRequest):
     entity = session.execute(select(Ability).where(Ability.id == id)).scalar_one()
     entity.name = req.name
     entity.niko_id = req.niko_id
+    session.commit()
+    
+def delete_ability(id: int):
+    entity = session.get(Ability, id)
+    session.delete(entity)
     session.commit()
 
 def get_user_by_username(username: str):

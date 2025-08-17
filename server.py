@@ -128,6 +128,11 @@ def update_niko(id: int, niko: dto.NikoRequest, current_user: Annotated[User, De
     service.update_niko(id, niko)
     return {"msg":"Updated Niko."}
 
+@app.delete("/nikos", tags=['nikos'])
+def delete_niko(id: int, current_user: Annotated[User, Depends(get_current_user)]):
+    service.delete_niko(id)
+    return {"msg":"Deleted Niko."}
+
 @app.get("/nikos/count", tags=['nikos'])
 def get_niko_count():
     return service.get_nikos_count()
@@ -137,7 +142,7 @@ def get_abilities():
     return service.get_abilities()
 
 @app.get("/abilities/", response_model=dto.AbilityResponse, tags=['abilities'])
-def get_ability(id = 1):
+def get_ability_by_id(id = 1):
     return service.get_ability_by_id(id)
 
 @app.post("/abilities", tags=['abilities'])
@@ -146,9 +151,14 @@ def post_ability(ability: dto.AbilityRequest, current_user: Annotated[User, Depe
     return {"msg":"Inserted Ability."}
 
 @app.put("/abilities", tags=['abilities'])
-def put_ability(id: int, ability: dto.AbilityRequest, current_user: Annotated[User, Depends(get_current_user)]):
+def update_ability(id: int, ability: dto.AbilityRequest, current_user: Annotated[User, Depends(get_current_user)]):
     service.update_ability(id, ability)
     return {"msg":"Updated Ability."}
+
+@app.delete("/abilities", tags=['abilities'])
+def delete_ability(id: int, current_user: Annotated[User, Depends(get_current_user)]):
+    service.delete_ability(id)
+    return {"msg":"Deleted Ability."}
 
 @app.post("/token", tags=['auth'])
 async def login_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:
