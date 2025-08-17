@@ -97,7 +97,7 @@ CREATE TABLE `nikos` (
 
 LOCK TABLES `nikos` WRITE;
 /*!40000 ALTER TABLE `nikos` DISABLE KEYS */;
-INSERT INTO `nikos` VALUES (1,'Niko','The Messiah.','','','nightmargin','The Messiah\'s full desc');
+INSERT INTO `nikos` VALUES (1,'Niko','The Messiah.','','','nightmargin',"The Messiah's full desc"),(2,'nikodev','Shy inventor, beloved by the community','nikodev.png','','nikodev','Inventor of his own gun. He is making a rival to RPGMaker, too.');
 /*!40000 ALTER TABLE `nikos` ENABLE KEYS */;
 UNLOCK TABLES;
 
