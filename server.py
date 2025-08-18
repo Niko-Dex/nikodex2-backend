@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, List
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
@@ -109,8 +109,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.mount("/images", StaticFiles(directory="images"), name="images")
 
 @app.get("/nikos", response_model=List[dto.NikoResponse], tags=['nikos'])
 def get_all_nikos():
@@ -232,4 +230,35 @@ async def login_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 @app.get("/users/me", response_model=User, tags=['auth'])
 def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
     return current_user
-    
+
+app.mount("/images", StaticFiles(directory="images"), name="images")
+@app.post("/image")
+async def upload_image(id: int, file: UploadFile, current_user: Annotated[User, Depends(get_current_user)]):
+    res = await service.upload_image(id=id, file=file)
+    if not res:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Not a valid image file, or filesize too big!"
+        )
+    return Response(
+        status_code=status.HTTP_200_OK
+    )
+@app.delete("/image")
+def delete_image(id: int, current_user: Annotated[User, Depends(get_current_user)]):
+    res = service.delete_image(id=id)
+    if not res:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot find image file!"
+        )
+    return Response(
+        status_code=status.HTTP_204_NO_CONTENT
+    )
+@app.get("/image")
+def get_image(id: int):
+    res = service.get_image(id)
+    if not res:
+        return Response(
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+    return res

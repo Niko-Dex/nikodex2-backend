@@ -5,3 +5,6 @@ __pycache__
 .env
 /nikodex2-frontend
 .env.local
+
+images/*
+!images/default.png

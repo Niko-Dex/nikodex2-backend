@@ -1,12 +1,20 @@
 import os
 import datetime
 from dotenv import load_dotenv
+from fastapi import UploadFile
+from fastapi.responses import FileResponse
 from models import Niko, Ability, Blog, User
-from sqlalchemy.orm import Session, selectinload, sessionmaker
-from sqlalchemy import and_, create_engine, text, select, insert, func
+from sqlalchemy.orm import selectinload, sessionmaker
+from sqlalchemy import create_engine, select, insert, func
+from PIL import Image
+import io
 import dto
-
 load_dotenv()
+
+IMAGE_DIR = os.environ['IMG_DIR']
+MAX_IMG_SIZE = 2 * 1024 * 1024 # 2MB
+os.makedirs(IMAGE_DIR, exist_ok=True)
+
 
 connection_str = "mysql+mysqlconnector://{}:{}@{}:{}/{}" \
     .format(os.environ['MYSQL_USER'], os.environ['MYSQL_PASS'], os.environ['MYSQL_URI'], os.environ['MYSQL_PORT'], "nikodex")
@@ -51,7 +59,7 @@ def get_nikos_count(session):
 @run_in_session
 def insert_niko(session, req: dto.NikoRequest):
     stmt = insert(Niko).values(name=req.name, description=req.description,
-    image=req.image, doc="", author=req.author, full_desc=req.full_desc)
+    image="", doc="", author=req.author, full_desc=req.full_desc)
 
     session.execute(stmt)
     session.commit()
@@ -64,7 +72,6 @@ def update_niko(session, id: int, req: dto.NikoRequest):
         return None
     entity.name = req.name
     entity.description = req.description
-    entity.image = req.image
     entity.full_desc = req.full_desc
     entity.author = req.author
     session.commit()
@@ -72,6 +79,7 @@ def update_niko(session, id: int, req: dto.NikoRequest):
 
 @run_in_session
 def delete_niko(session, id: int):
+    delete_image(id)
     entity = session.get(Niko, id)
     session.delete(entity)
     session.commit()
@@ -117,7 +125,7 @@ def get_user_by_username(session, username: str):
     return session.scalars(stmt).one()
 
 @run_in_session
-def get_blogs(session, ):
+def get_blogs(session):
     stmt = select(Blog)
     return session.scalars(stmt).fetchall()
 
@@ -151,6 +159,56 @@ def delete_blog(session, id: int):
     session.delete(entity)
     session.commit()
     return {"msg":"Deleted Blog."}
+
+@run_in_session
+async def upload_image(session, id: int, file: UploadFile):
+    entity = session.execute(select(Niko).where(Niko.id == id)).scalar_one_or_none()
+    if entity is None:
+        return None
+
+    if not file.content_type.startswith("image/"):
+        return None
+    if file.size > MAX_IMG_SIZE:
+        return None
+    data = await file.read()
+    try:
+        image = Image.open(io.BytesIO(data))
+    except:
+        return None
+
+    image = image.convert("RGBA")
+    path = os.path.join(IMAGE_DIR, f"niko-{id}.png")
+
+    image.save(path, format="PNG")
+
+    await file.close()
+    entity.image = f"niko-{id}.png"
+    session.commit()
+
+    return True
+
+@run_in_session
+def delete_image(session, id: int):
+    entity = session.execute(select(Niko).where(Niko.id == id)).scalar_one_or_none()
+    if entity is None:
+        return None
+
+    os.remove(os.path.join(IMAGE_DIR, f"niko-{id}.png"))
+
+    entity.image = ""
+    session.commit()
+    return True
+
+@run_in_session
+def get_image(session, id: int):
+    entity = session.execute(select(Niko).where(Niko.id == id)).scalar_one_or_none()
+    if entity is None:
+        return None
+
+    path = os.path.join(IMAGE_DIR, f"niko-{id}.png")
+    if not os.path.exists(path):
+        path = os.path.join(IMAGE_DIR, "default.png")
+    return FileResponse(path, media_type="image/png")
 
 def close_connection():
     SessionLocal.close_all()
