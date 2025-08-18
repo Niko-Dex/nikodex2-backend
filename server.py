@@ -3,6 +3,7 @@ from typing import Annotated, List
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import jwt
 from passlib.context import CryptContext
@@ -108,6 +109,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/images", StaticFiles(directory="images"), name="images")
 
 @app.get("/nikos", response_model=List[dto.NikoResponse], tags=['nikos'])
 def get_all_nikos():
