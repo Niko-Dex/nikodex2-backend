@@ -118,6 +118,13 @@ def get_all_nikos():
 def get_niko_by_name(name = "Niko"):
     return service.get_by_name(name)
 
+@app.get("/nikos/page", response_model=List[dto.NikoResponse], tags=['nikos'])
+def get_nikos_page(page = 1):
+    res = service.get_nikos_page(page)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
+    return res
+
 @app.get("/nikos/", response_model=dto.NikoResponse, tags=['nikos'])
 def get_niko_by_id(id = 1):
     res = service.get_niko_by_id(id)

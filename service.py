@@ -15,6 +15,7 @@ IMAGE_DIR = os.environ['IMG_DIR']
 MAX_IMG_SIZE = 2 * 1024 * 1024 # 2MB
 os.makedirs(IMAGE_DIR, exist_ok=True)
 
+NIKOS_PER_PAGE = 14
 
 connection_str = "mysql+mysqlconnector://{}:{}@{}:{}/{}" \
     .format(os.environ['MYSQL_USER'], os.environ['MYSQL_PASS'], os.environ['MYSQL_URI'], os.environ['MYSQL_PORT'], "nikodex")
@@ -28,8 +29,9 @@ def run_in_session(func):
         try:
             result = func(session, *args, **kwargs)
             return result
-        except:
-            print("buh")
+        except Exception as e:
+            print("buh i got an error:")
+            print(e)
             session.rollback()
             return None
         finally:
@@ -39,6 +41,12 @@ def run_in_session(func):
 @run_in_session
 def get_all(session):
     stmt = select(Niko).options(selectinload(Niko.abilities))
+    return session.scalars(stmt).fetchall()
+
+@run_in_session
+def get_nikos_page(session, page: int):
+    if (int(page) < 1): return None
+    stmt = select(Niko).options(selectinload(Niko.abilities)).offset(NIKOS_PER_PAGE * (int(page) - 1)).limit(NIKOS_PER_PAGE)
     return session.scalars(stmt).fetchall()
 
 @run_in_session
