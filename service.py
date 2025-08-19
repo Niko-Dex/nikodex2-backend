@@ -51,7 +51,7 @@ def get_nikos_page(session, page: int):
 
 @run_in_session
 def get_by_name(session, name: str):
-    stmt = select(Niko).options(selectinload(Niko.abilities)).where(Niko.name.like(name))
+    stmt = select(Niko).options(selectinload(Niko.abilities)).where(Niko.name.like('%' + name + '%'))
     return session.scalars(stmt).fetchall()
 
 @run_in_session
