@@ -5,7 +5,7 @@ from fastapi import UploadFile
 from fastapi.responses import FileResponse
 from models import Niko, Ability, Blog, User
 from sqlalchemy.orm import selectinload, sessionmaker
-from sqlalchemy import create_engine, select, insert, func
+from sqlalchemy import create_engine, desc, select, insert, func
 from PIL import Image
 import io
 import dto
@@ -134,7 +134,7 @@ def get_user_by_username(session, username: str):
 
 @run_in_session
 def get_blogs(session):
-    stmt = select(Blog)
+    stmt = select(Blog).order_by(desc(Blog.post_datetime))
     return session.scalars(stmt).fetchall()
 
 @run_in_session
