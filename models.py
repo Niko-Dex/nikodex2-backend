@@ -58,7 +58,7 @@ class Ability(Base):
 
 class Blog(Base):
     __tablename__ = "blogs"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(255))
     author: Mapped[str] = mapped_column(String(255))
@@ -67,10 +67,10 @@ class Blog(Base):
 
 class User(Base):
     __tablename__ = "users"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(255))
     description: Mapped[str] = mapped_column(String())
     hashed_pass: Mapped[str] = mapped_column(String())
-    
-    
+
+

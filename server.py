@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from enum import Enum
 from typing import Annotated, List
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -111,16 +112,16 @@ app.add_middleware(
 )
 
 @app.get("/nikos", response_model=List[dto.NikoResponse], tags=['nikos'])
-def get_all_nikos():
-    return service.get_all()
+def get_all_nikos(sort_by: dto.SortType = dto.SortType.upload_time):
+    return service.get_all(sort_by)
 
 @app.get("/nikos/name", response_model=List[dto.NikoResponse], tags=['nikos'])
 def get_niko_by_name(name = "Niko"):
     return service.get_by_name(name)
 
 @app.get("/nikos/page", response_model=List[dto.NikoResponse], tags=['nikos'])
-def get_nikos_page(page = 1):
-    res = service.get_nikos_page(page)
+def get_nikos_page(page = 1, sort_by: dto.SortType = dto.SortType.upload_time):
+    res = service.get_nikos_page(page, sort_by)
     if res is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
     return res

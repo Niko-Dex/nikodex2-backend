@@ -5,7 +5,7 @@ from fastapi import UploadFile
 from fastapi.responses import FileResponse
 from models import Niko, Ability, Blog, User
 from sqlalchemy.orm import selectinload, sessionmaker
-from sqlalchemy import create_engine, desc, select, insert, func
+from sqlalchemy import create_engine, desc, select, insert, func, asc
 from PIL import Image
 import io
 import dto
@@ -38,15 +38,25 @@ def run_in_session(func):
             session.close()
     return wrapper
 
-@run_in_session
-def get_all(session):
+def get_nikos_wrapper(sort_by: dto.SortType):
     stmt = select(Niko).options(selectinload(Niko.abilities))
+
+    if sort_by == dto.SortType.name_ascending:
+        stmt = stmt.order_by(asc(Niko.name))
+    elif sort_by == dto.SortType.name_descending:
+        stmt = stmt.order_by(desc(Niko.name))
+
+    return stmt
+
+@run_in_session
+def get_all(session, sort_by: dto.SortType):
+    stmt = get_nikos_wrapper(sort_by)
     return session.scalars(stmt).fetchall()
 
 @run_in_session
-def get_nikos_page(session, page: int):
+def get_nikos_page(session, page: int, sort_by: dto.SortType):
     if (int(page) < 1): return None
-    stmt = select(Niko).options(selectinload(Niko.abilities)).offset(NIKOS_PER_PAGE * (int(page) - 1)).limit(NIKOS_PER_PAGE)
+    stmt = get_nikos_wrapper(sort_by).offset(NIKOS_PER_PAGE * (int(page) - 1)).limit(NIKOS_PER_PAGE)
     return session.scalars(stmt).fetchall()
 
 @run_in_session
