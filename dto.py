@@ -30,6 +30,7 @@ class BlogResponse(BlogRequest):
     post_datetime: datetime
 
 class SortType(Enum):
-    upload_time = "upload_time"
+    recently_added = "recently_added"
+    oldest_added = "oldest_added"
     name_ascending = "name_ascending"
     name_descending = "name_descending"

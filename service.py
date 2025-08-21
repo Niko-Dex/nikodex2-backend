@@ -45,6 +45,8 @@ def get_nikos_wrapper(sort_by: dto.SortType):
         stmt = stmt.order_by(asc(Niko.name))
     elif sort_by == dto.SortType.name_descending:
         stmt = stmt.order_by(desc(Niko.name))
+    elif sort_by == dto.SortType.recently_added:
+        stmt = stmt.order_by(desc(Niko.id))
 
     return stmt
 
