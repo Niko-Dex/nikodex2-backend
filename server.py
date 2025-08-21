@@ -115,6 +115,10 @@ app.add_middleware(
 def get_all_nikos(sort_by: dto.SortType = dto.SortType.upload_time):
     return service.get_all(sort_by)
 
+@app.get("/nikos/random", response_model=dto.NikoResponse, tags=['nikos'])
+def get_random_nikos():
+    return service.get_random_niko()
+
 @app.get("/nikos/name", response_model=List[dto.NikoResponse], tags=['nikos'])
 def get_niko_by_name(name = "Niko"):
     return service.get_by_name(name)
@@ -239,8 +243,7 @@ async def login_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
     return current_user
 
-app.mount("/images", StaticFiles(directory="images"), name="images")
-@app.post("/image")
+@app.post("/image", tags=["images"])
 async def upload_image(id: int, file: UploadFile, current_user: Annotated[User, Depends(get_current_user)]):
     res = await service.upload_image(id=id, file=file)
     if not res:
@@ -251,7 +254,7 @@ async def upload_image(id: int, file: UploadFile, current_user: Annotated[User, 
     return Response(
         status_code=status.HTTP_200_OK
     )
-@app.delete("/image")
+@app.delete("/image", tags=["images"])
 def delete_image(id: int, current_user: Annotated[User, Depends(get_current_user)]):
     res = service.delete_image(id=id)
     if not res:
@@ -262,7 +265,7 @@ def delete_image(id: int, current_user: Annotated[User, Depends(get_current_user
     return Response(
         status_code=status.HTTP_204_NO_CONTENT
     )
-@app.get("/image")
+@app.get("/image", tags=["images"])
 def get_image(id: int):
     res = service.get_image(id)
     if not res:

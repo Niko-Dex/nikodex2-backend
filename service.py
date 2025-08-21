@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from fastapi import UploadFile
 from fastapi.responses import FileResponse
 from models import Niko, Ability, Blog, User
-from sqlalchemy.orm import selectinload, sessionmaker
+from sqlalchemy.orm import selectinload, sessionmaker, Session
 from sqlalchemy import create_engine, desc, select, insert, func, asc
 from PIL import Image
 import io
@@ -49,33 +49,39 @@ def get_nikos_wrapper(sort_by: dto.SortType):
     return stmt
 
 @run_in_session
-def get_all(session, sort_by: dto.SortType):
+def get_all(session: Session, sort_by: dto.SortType):
     stmt = get_nikos_wrapper(sort_by)
     return session.scalars(stmt).fetchall()
 
 @run_in_session
-def get_nikos_page(session, page: int, sort_by: dto.SortType):
+def get_random_niko(session: Session):
+    st_random = select(Niko.id).order_by(func.random()).limit(1).subquery()
+    stmt = select(Niko).options(selectinload(Niko.abilities)).join(st_random, Niko.id == st_random.c.id)
+    return session.scalars(stmt).one()
+
+@run_in_session
+def get_nikos_page(session: Session, page: int, sort_by: dto.SortType):
     if (int(page) < 1): return None
     stmt = get_nikos_wrapper(sort_by).offset(NIKOS_PER_PAGE * (int(page) - 1)).limit(NIKOS_PER_PAGE)
     return session.scalars(stmt).fetchall()
 
 @run_in_session
-def get_by_name(session, name: str):
+def get_by_name(session: Session, name: str):
     stmt = select(Niko).options(selectinload(Niko.abilities)).where(Niko.name.like('%' + name + '%'))
     return session.scalars(stmt).fetchall()
 
 @run_in_session
-def get_niko_by_id(session, id: int):
+def get_niko_by_id(session: Session, id: int):
     stmt = select(Niko).options(selectinload(Niko.abilities)).where(Niko.id == id)
     res = session.scalars(stmt).one()
     return res
 
 @run_in_session
-def get_nikos_count(session):
+def get_nikos_count(session: Session):
     return session.query(func.count(Niko.id)).one()[0]
 
 @run_in_session
-def insert_niko(session, req: dto.NikoRequest):
+def insert_niko(session: Session, req: dto.NikoRequest):
     stmt = insert(Niko).values(name=req.name, description=req.description,
     image="", doc="", author=req.author, full_desc=req.full_desc)
 
@@ -84,7 +90,7 @@ def insert_niko(session, req: dto.NikoRequest):
     return {"msg":"Inserted Niko."}
 
 @run_in_session
-def update_niko(session, id: int, req: dto.NikoRequest):
+def update_niko(session: Session, id: int, req: dto.NikoRequest):
     entity = session.execute(select(Niko).where(Niko.id == id)).scalar_one_or_none()
     if entity is None:
         return None
@@ -96,7 +102,7 @@ def update_niko(session, id: int, req: dto.NikoRequest):
     return {"msg":"Updated Niko."}
 
 @run_in_session
-def delete_niko(session, id: int):
+def delete_niko(session: Session, id: int):
     delete_image(id)
     entity = session.get(Niko, id)
     session.delete(entity)
@@ -104,24 +110,24 @@ def delete_niko(session, id: int):
     return {"msg":"Deleted Niko."}
 
 @run_in_session
-def get_abilities(session):
+def get_abilities(session: Session):
     stmt = select(Ability)
     return session.scalars(stmt).fetchall()
 
 @run_in_session
-def get_ability_by_id(session, id: int):
+def get_ability_by_id(session: Session, id: int):
     stmt = select(Ability).where(Ability.id == id)
     return session.scalars(stmt).one()
 
 @run_in_session
-def insert_ability(session, req: dto.AbilityRequest):
+def insert_ability(session: Session, req: dto.AbilityRequest):
     stmt = insert(Ability).values(name=req.name, niko_id=req.niko_id)
     session.execute(stmt)
     session.commit()
     return {"msg":"Inserted Ability."}
 
 @run_in_session
-def update_ability(session, id: int, req: dto.AbilityRequest):
+def update_ability(session: Session, id: int, req: dto.AbilityRequest):
     entity = session.execute(select(Ability).where(Ability.id == id)).scalar_one_or_none()
     if entity is None:
         return None
@@ -131,29 +137,29 @@ def update_ability(session, id: int, req: dto.AbilityRequest):
     return {"msg":"Updated Ability."}
 
 @run_in_session
-def delete_ability(session, id: int):
+def delete_ability(session: Session, id: int):
     entity = session.get(Ability, id)
     session.delete(entity)
     session.commit()
     return {"msg":"Deleted Ability."}
 
 @run_in_session
-def get_user_by_username(session, username: str):
+def get_user_by_username(session: Session, username: str):
     stmt = select(User).where(User.username == username).limit(1)
     return session.scalars(stmt).one()
 
 @run_in_session
-def get_blogs(session):
+def get_blogs(session: Session):
     stmt = select(Blog).order_by(desc(Blog.post_datetime))
     return session.scalars(stmt).fetchall()
 
 @run_in_session
-def get_blog_by_id(session, id: int):
+def get_blog_by_id(session: Session, id: int):
     stmt = select(Blog).where(Blog.id == id).limit(1)
     return session.scalars(stmt).one()
 
 @run_in_session
-def post_blog(session, req: dto.BlogRequest):
+def post_blog(session: Session, req: dto.BlogRequest):
     stmt = insert(Blog).values(title=req.title, content=req.content,
         author=req.author, post_datetime=datetime.datetime.now())
     session.execute(stmt)
@@ -161,7 +167,7 @@ def post_blog(session, req: dto.BlogRequest):
     return {"msg":"Posted Blog."}
 
 @run_in_session
-def update_blog(session, id: int, req: dto.BlogRequest):
+def update_blog(session: Session, id: int, req: dto.BlogRequest):
     entity = session.execute(select(Blog).where(Blog.id == id)).scalar_one_or_none()
     if entity is None:
         return None
@@ -172,14 +178,14 @@ def update_blog(session, id: int, req: dto.BlogRequest):
     return {"msg":"Updated Blog."}
 
 @run_in_session
-def delete_blog(session, id: int):
+def delete_blog(session: Session, id: int):
     entity = session.execute(select(Blog).where(Blog.id == id)).scalar_one()
     session.delete(entity)
     session.commit()
     return {"msg":"Deleted Blog."}
 
 @run_in_session
-async def upload_image(session, id: int, file: UploadFile):
+async def upload_image(session: Session, id: int, file: UploadFile):
     entity = session.execute(select(Niko).where(Niko.id == id)).scalar_one_or_none()
     if entity is None:
         return None
@@ -206,7 +212,7 @@ async def upload_image(session, id: int, file: UploadFile):
     return True
 
 @run_in_session
-def delete_image(session, id: int):
+def delete_image(session: Session, id: int):
     entity = session.execute(select(Niko).where(Niko.id == id)).scalar_one_or_none()
     if entity is None:
         return None
@@ -218,7 +224,7 @@ def delete_image(session, id: int):
     return True
 
 @run_in_session
-def get_image(session, id: int):
+def get_image(session: Session, id: int):
     entity = session.execute(select(Niko).where(Niko.id == id)).scalar_one_or_none()
     if entity is None:
         return None
