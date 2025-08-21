@@ -21,7 +21,6 @@ virtual-env\Scripts\activate # Windows ONLY (cmd)
 3. Install all the required dependecies
 ```bash
 pip install -r requirements.txt
-pip install "fastapi[standard]" # fastapi command line tool
 ```
 4. Configure the server by creating a .env file with the following content (replace the brackets with actual data):
 ```
@@ -51,5 +50,14 @@ fastapi dev server.py
 > Follow the same step from 1 to 4 in the [Setup for developing](#setup-for-developing) section
 5. Run the production server
 ```
+fastapi run main.py
+```
+This is the default way to run the backend server, and it should work for most cases.
+
+But since the backend server is an ASGI app, you can use a different ASGI server program.
+ For instance, you can use gunicorn to run the backend server with options to create more workers
+```bash
+# FOR UNIX/LINUX ONLY
+pip install "fastapi[standard]" # fastapi command line tool
 gunicorn -k uvicorn.workers.UvicornWorker server:app --workers 4 --bind 0.0.0.0:8000
 ```
