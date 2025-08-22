@@ -9,6 +9,7 @@ from sqlalchemy import create_engine, desc, select, insert, func, asc
 from PIL import Image
 import io
 import dto
+from passlib.context import CryptContext
 load_dotenv()
 
 IMAGE_DIR = os.environ['IMG_DIR']
@@ -22,6 +23,7 @@ connection_str = "mysql+mysqlconnector://{}:{}@{}:{}/{}" \
 
 engine = create_engine(connection_str, echo=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def run_in_session(func):
     def wrapper(*args, **kwargs):
@@ -235,6 +237,24 @@ def get_image(session: Session, id: int):
     if not os.path.exists(path):
         path = os.path.join(IMAGE_DIR, "default.png")
     return FileResponse(path, media_type="image/png")
+
+@run_in_session
+def update_user(session: Session, username: str, req: dto.UserChangeRequest):
+    entity = session.execute(select(User).where(User.username == username)).scalar_one_or_none()
+    if entity is None:
+        return False
+
+    if len(req.new_username) > 0:
+        entity.username = req.new_username
+
+    if len(req.new_password) > 0:
+        entity.hashed_pass = pwd_context.hash(req.new_password)
+
+    if len(req.new_description) > 0:
+        entity.description = req.new_description
+    session.commit()
+
+    return True
 
 def close_connection():
     SessionLocal.close_all()

@@ -47,6 +47,10 @@ IMG_DIR=""
 fastapi dev server.py
 ```
 
+You can now login to the admin dashboard with the default username and password of `admin` / `nikodex`.
+
+p.s.: If you're planning on using the dev mode for production: **__DON'T__**
+
 ## Setup for production
 > Follow the same step from 1 to 4 in the [Setup for developing](#setup-for-developing) section
 5. Run the production server
@@ -60,3 +64,8 @@ However, since the backend server is an ASGI app, you can use a different ASGI s
 # FOR UNIX/LINUX ONLY
 gunicorn -k uvicorn.workers.UvicornWorker server:app --workers 4 --bind 0.0.0.0:8000
 ```
+
+6. (IMPORTANT) Change the password!!!
+Since the default username and password is the same when you clone the repo, leaving it there would be insecure.
+
+Therefore, we recommend resetting the default password of the admin account. To do so, run the `reset_pass.py` script, or change the password within the admin dashboard.

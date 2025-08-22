@@ -29,6 +29,11 @@ class BlogResponse(BlogRequest):
     id: int
     post_datetime: datetime
 
+class UserChangeRequest(BaseModel):
+    new_username: str
+    new_password: str
+    new_description: str
+
 class SortType(Enum):
     recently_added = "recently_added"
     oldest_added = "oldest_added"

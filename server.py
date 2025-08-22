@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from enum import Enum
+import re
 from typing import Annotated, List
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -45,7 +46,7 @@ class TokenData(BaseModel):
 class User(BaseModel):
     username: str
     description: str
-    
+
 class UserInDb(User):
     password: str
 
@@ -242,6 +243,36 @@ async def login_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 @app.get("/users/me", response_model=User, tags=['auth'])
 def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
     return current_user
+
+@app.put("/users/me", tags=['auth'])
+def change_user(new_user: dto.UserChangeRequest, current_user: Annotated[User, Depends(get_current_user)]):
+    username_pattern = r'^[A-Za-z0-9_]{1,32}$'
+    if len(new_user.new_username.strip()) > 0 and not bool(re.match(username_pattern, new_user.new_username)):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username too long or contain invalid characters (max length of 32, character in A-Z, a-z, 0-9 and _)!"
+        )
+
+    if len(new_user.new_password) > 128:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password too long (max 128 characters)!"
+        )
+
+    if len(new_user.new_description) > 256:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Description too long (max 256 characters)!"
+        )
+
+    res = service.update_user(current_user.username, req=new_user)
+    if res:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cannot find user with specified ID!"
+        )
 
 @app.post("/image", tags=["images"])
 async def upload_image(id: int, file: UploadFile, current_user: Annotated[User, Depends(get_current_user)]):
