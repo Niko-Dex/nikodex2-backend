@@ -68,4 +68,9 @@ gunicorn -k uvicorn.workers.UvicornWorker server:app --workers 4 --bind 0.0.0.0:
 6. (IMPORTANT) Change the password!!!
 Since the default username and password is the same when you clone the repo, leaving it there would be insecure.
 
-Therefore, we recommend resetting the default password of the admin account. To do so, run the `reset_pass.py` script, or change the password within the admin dashboard.
+Therefore, we recommend resetting the default password of the admin account. To do so, change the password within the admin dashboard, or use the `account_manage.py` script to edit the default `admin`'s password account.
+
+## Accounts
+As of now, there is only one type of account for Nikodex v2, which is Administrator (or admin for short). These accounts have access to the admin dashboard on the front-end, and can manage data about Nikosonas and Blogs on the database.
+
+If you wish to create more admin accounts to manage the Nikodex, use the `account_manage.py` scripts to create, edit, or remove admin accounts.
