@@ -285,6 +285,7 @@ async def upload_image(id: int, file: UploadFile, current_user: Annotated[User, 
     return Response(
         status_code=status.HTTP_200_OK
     )
+
 @app.delete("/image", tags=["images"])
 def delete_image(id: int, current_user: Annotated[User, Depends(get_current_user)]):
     res = service.delete_image(id=id)
@@ -296,6 +297,7 @@ def delete_image(id: int, current_user: Annotated[User, Depends(get_current_user
     return Response(
         status_code=status.HTTP_204_NO_CONTENT
     )
+
 @app.get("/image", tags=["images"])
 def get_image(id: int):
     res = service.get_image(id)
@@ -304,3 +306,9 @@ def get_image(id: int):
             status_code=status.HTTP_404_NOT_FOUND
         )
     return res
+
+@app.get("/ping")
+def ping():
+    return Response(
+        status_code=status.HTTP_200_OK
+    )
