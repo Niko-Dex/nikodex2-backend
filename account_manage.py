@@ -2,11 +2,11 @@ import os
 import re
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, insert, text, select
+from sqlalchemy import create_engine, insert, select
 from passlib.context import CryptContext
 import getpass
 
-from models import Niko, User
+from models import User
 
 load_dotenv()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
