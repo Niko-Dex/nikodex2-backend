@@ -235,7 +235,7 @@ def get_image(session: Session, id: int):
 
     path = os.path.join(IMAGE_DIR, f"niko-{id}.png")
     if not os.path.exists(path):
-        path = os.path.join(IMAGE_DIR, "default.png")
+        path = os.path.join("images/default.png")
     return FileResponse(path, media_type="image/png")
 
 @run_in_session
