@@ -291,8 +291,8 @@ def delete_image(id: int, current_user: Annotated[User, Depends(get_current_user
     res = service.delete_image(id=id)
     if not res:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot find image file!"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cannot find image file to delete!"
         )
     return Response(
         status_code=status.HTTP_204_NO_CONTENT
@@ -302,8 +302,9 @@ def delete_image(id: int, current_user: Annotated[User, Depends(get_current_user
 def get_image(id: int):
     res = service.get_image(id)
     if not res:
-        return Response(
-            status_code=status.HTTP_404_NOT_FOUND
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cannot find image file!"
         )
     return res
 
