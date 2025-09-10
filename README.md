@@ -17,13 +17,17 @@ source virtual-env/bin/activate.fish # Linux ONLY (fish)
 virtual-env\Scripts\Activate.ps1 # Windows ONLY (powershell)
 virtual-env\Scripts\activate.bat # Windows ONLY (cmd)
 ```
-2. Setup the MySQL database with the provided `server_schema.sql` file.
-3. Install all the required dependecies
+2. Setup a blank MySQL database with the provided `server_schema.sql` file.
+3. Setup/upgrade the Nikodex's database by running:
+```
+alembic upgrade head
+```
+4. Install all the required dependecies
 ```bash
 pip install -r requirements.txt
 pip install "fastapi[standard]" # fastapi command line tool
 ```
-4. Configure the server by creating a .env file with the following content (replace the brackets with actual data):
+5. Configure the server by creating a .env file with the following content (replace the brackets with actual data):
 ```
 # MySQL server setup.
 MYSQL_USER="<mysql_username>"
@@ -41,20 +45,25 @@ ALGORITHM="HS256"
 
 # Path to store the image of Nikosona
 IMG_DIR=""
+
+API_BOT_SHARED_SECRET="<shared_secret>" # a shared secret between the bot and the backend API for bot-specific API routes. it is recommended that you use a long, random value for this. this value MUST MATCH with the one on nikodex2-bot
 ```
 
-5. Run the dev server
+6. Create an admin account with the provided `_account_manage.py` script
+```
+python _account_manage.py
+```
+
+7. Run the dev server
 ```
 fastapi dev server.py
 ```
 
-You can now login to the admin dashboard with the default username and password of `admin` / `nikodex`.
-
 p.s.: If you're planning on using the dev mode for production: **__DON'T__**
 
 ## Setup for production
-> Follow the same step from 1 to 4 in the [Setup for developing](#setup-for-developing) section
-5. Run the production server
+> Follow the same step from 1 to 6 in the [Setup for developing](#setup-for-developing) section
+7. Run the production server
 ```
 fastapi run main.py
 ```
@@ -66,10 +75,17 @@ However, since the backend server is an ASGI app, you can use a different ASGI s
 gunicorn -k uvicorn.workers.UvicornWorker server:app --workers 4 --bind 0.0.0.0:8000
 ```
 
-6. (IMPORTANT) Change the password!!!
-Since the default username and password is the same when you clone the repo, leaving it there would be insecure.
-
-Therefore, we recommend resetting the default password of the admin account. To do so, change the password within the admin dashboard, or use the `_account_manage.py` script to edit the default `admin`'s password account.
+## Upgrade
+Since this project is in development, you may want to upgrade the package to the latest commit. To do so:
+1. Pull the latest commit from GitHub:
+```
+git pull
+```
+2. Upgrade the database:
+```
+alembic upgrade head
+```
+3. Run the dev/production server (step 7)
 
 ## Accounts
 As of now, there is only one type of account for Nikodex v2, which is Administrator (or admin for short). These accounts have access to the admin dashboard on the front-end, and can manage data about Nikosonas and Blogs on the database.

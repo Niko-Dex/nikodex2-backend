@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 import re
 from typing import Annotated, List
-from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, Response
+from fastapi import FastAPI, Depends, HTTPException, Header, status, UploadFile, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
@@ -31,6 +31,7 @@ tags_metadata = [
 
 SECRET_KEY = os.environ['SECRET_KEY']
 ALGORITHM = os.environ['ALGORITHM']
+API_BOT_SHARED_SECRET = os.environ['API_BOT_SHARED_SECRET']
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -92,6 +93,11 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     if user is None:
         raise credentials_exception
     return user
+
+async def get_shared_token(authorization: str = Header(...)):
+    if API_BOT_SHARED_SECRET == "" or API_BOT_SHARED_SECRET != authorization:
+        raise HTTPException(status_code=401, detail="Invalid authorization")
+    return None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -313,3 +319,18 @@ def ping():
     return Response(
         status_code=status.HTTP_200_OK
     )
+
+@app.get("/discord_bot/submit_user", response_model=dto.SubmitUserResponse, tags=["bot"])
+def log_user(user_id: str, authorization: Annotated[None, Depends(get_shared_token)]):
+    res = service.get_submit_user(user_id)
+    if res is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cannot find submit user!"
+        )
+    return res
+
+@app.post("/discord_bot/submit_user", tags=["bot"])
+def log_user(user_id: str, submit_user: dto.SubmitUserRequest, authorization: Annotated[None, Depends(get_shared_token)]):
+    res = service.post_submit_user(user_id, submit_user)
+    return res

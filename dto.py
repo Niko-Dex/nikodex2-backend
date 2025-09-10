@@ -39,3 +39,15 @@ class SortType(Enum):
     oldest_added = "oldest_added"
     name_ascending = "name_ascending"
     name_descending = "name_descending"
+
+class SubmitUserRequest(BaseModel):
+    last_submit_on: int
+    is_banned: bool
+    ban_reason: str
+
+class SubmitUserResponse(BaseModel):
+    id: int
+    user_id: str
+    last_submit_on: int
+    is_banned: bool
+    ban_reason: str

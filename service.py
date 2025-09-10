@@ -3,9 +3,10 @@ import datetime
 from dotenv import load_dotenv
 from fastapi import UploadFile
 from fastapi.responses import FileResponse
-from models import Niko, Ability, Blog, User
+from models import Niko, Ability, Blog, SubmitUser, User
 from sqlalchemy.orm import selectinload, sessionmaker, Session
-from sqlalchemy import create_engine, desc, select, insert, func, asc
+from sqlalchemy import create_engine, desc, select, func, asc
+from sqlalchemy.dialects.mysql import insert
 from PIL import Image
 import io
 import dto
@@ -87,7 +88,7 @@ def get_nikos_count(session: Session):
 @run_in_session
 def insert_niko(session: Session, req: dto.NikoRequest):
     stmt = insert(Niko).values(name=req.name, description=req.description,
-    image="", doc="", author=req.author, full_desc=req.full_desc)
+    doc="", author=req.author, full_desc=req.full_desc)
 
     session.execute(stmt)
     session.commit()
@@ -255,6 +256,27 @@ def update_user(session: Session, username: str, req: dto.UserChangeRequest):
     session.commit()
 
     return True
+
+@run_in_session
+def get_submit_user(session: Session, user_id: str):
+    stmt = select(SubmitUser).where(SubmitUser.user_id == user_id).limit(1)
+    return session.scalars(stmt).one_or_none()
+
+@run_in_session
+def post_submit_user(session: Session, user_id: str, req: dto.SubmitUserRequest):
+    stmt = insert(SubmitUser).values(
+        user_id = user_id,
+        last_submit_on = req.last_submit_on,
+        is_banned = req.is_banned,
+        ban_reason = req.ban_reason
+    ).on_duplicate_key_update(
+        last_submit_on = req.last_submit_on,
+        is_banned = req.is_banned,
+        ban_reason = req.ban_reason
+    )
+    session.execute(stmt)
+    session.commit()
+    return {"msg":"Updated submit user."}
 
 def close_connection():
     SessionLocal.close_all()

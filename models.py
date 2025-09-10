@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List
-from sqlalchemy import DateTime, String
+from sqlalchemy import BigInteger, DateTime, String, Text, Boolean
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
@@ -14,12 +14,11 @@ class Niko(Base):
     __tablename__ = "nikos"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(255))
-    description: Mapped[str] = mapped_column(String())
-    image: Mapped[str] = mapped_column(String())
+    name: Mapped[str] = mapped_column(String(127))
+    description: Mapped[str] = mapped_column(String(255))
     doc: Mapped[str] = mapped_column(String(255))
     author: Mapped[str] = mapped_column(String(255))
-    full_desc: Mapped[str] = mapped_column(String())
+    full_desc: Mapped[str] = mapped_column(String(1023))
 
     abilities: Mapped[List["Ability"]] = relationship(
         back_populates="niko"
@@ -62,7 +61,7 @@ class Blog(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(255))
     author: Mapped[str] = mapped_column(String(255))
-    content: Mapped[str] = mapped_column(String())
+    content: Mapped[str] = mapped_column(Text())
     post_datetime: Mapped[datetime] = mapped_column(DateTime())
 
 class User(Base):
@@ -70,7 +69,14 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(255))
-    description: Mapped[str] = mapped_column(String())
-    hashed_pass: Mapped[str] = mapped_column(String())
+    description: Mapped[str] = mapped_column(String(255))
+    hashed_pass: Mapped[str] = mapped_column(String(1023))
 
+class SubmitUser(Base):
+    __tablename__ = "submit_users"
 
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(255), unique=True)
+    last_submit_on: Mapped[int] = mapped_column(BigInteger())
+    is_banned: Mapped[bool] = mapped_column(Boolean, default=False)
+    ban_reason: Mapped[str] = mapped_column(String(1023), default="")
