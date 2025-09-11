@@ -75,6 +75,25 @@ However, since the backend server is an ASGI app, you can use a different ASGI s
 gunicorn -k uvicorn.workers.UvicornWorker server:app --workers 4 --bind 0.0.0.0:8000
 ```
 
+## Database management
+This project uses Alembic to help keep database structure consistent. If you've made changes to the `models.py` file, it is required that you make a "version" on Alembic.
+
+To do so, run
+```
+alembic revision --autogenerate -m "<commit_message>"
+```
+
+After that, a script should generate in the `versions` folder. You can then run
+```
+alembic upgrade head
+```
+to upgrade the hosted database to follow the new changes.
+
+If you want to downgrade, run
+```
+alembic downgrade <id>
+```
+
 ## Upgrade
 Since this project is in development, you may want to upgrade the package to the latest commit. To do so:
 1. Pull the latest commit from GitHub:
