@@ -17,17 +17,12 @@ source virtual-env/bin/activate.fish # Linux ONLY (fish)
 virtual-env\Scripts\Activate.ps1 # Windows ONLY (powershell)
 virtual-env\Scripts\activate.bat # Windows ONLY (cmd)
 ```
-2. Setup a blank MySQL database with the provided `server_schema.sql` file.
-3. Setup/upgrade the Nikodex's database by running:
-```
-alembic upgrade head
-```
-4. Install all the required dependecies
+2. Install all the required dependecies
 ```bash
 pip install -r requirements.txt
 pip install "fastapi[standard]" # fastapi command line tool
 ```
-5. Configure the server by creating a .env file with the following content (replace the brackets with actual data):
+3. Configure the server by creating a .env file with the following content (replace the brackets with actual data):
 ```
 # MySQL server setup.
 MYSQL_USER="<mysql_username>"
@@ -47,6 +42,13 @@ ALGORITHM="HS256"
 IMG_DIR=""
 
 API_BOT_SHARED_SECRET="<shared_secret>" # a shared secret between the bot and the backend API for bot-specific API routes. it is recommended that you use a long, random value for this. this value MUST MATCH with the one on nikodex2-bot
+```
+
+4. Setup a blank MySQL database with the provided `server_schema.sql` file.
+
+5. Setup/upgrade the Nikodex's database by running:
+```
+alembic upgrade head
 ```
 
 6. Create an admin account with the provided `_account_manage.py` script
