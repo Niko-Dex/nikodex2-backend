@@ -29,11 +29,10 @@ class Niko(Base):
         self.name = name
         self.description = description
         self.full_desc = full_desc
-        self.image = image
         self.abilities = list()
 
     def __repr__(self):
-        return f"Niko(id={self.id};name={self.name};description={self.description};full_desc={self.full_desc};image={self.image})"
+        return f"Niko(id={self.id};name={self.name};description={self.description};full_desc={self.full_desc})"
 
     def set_abilities_list(self, lis: list):
         self.abilities = lis
