@@ -17,8 +17,6 @@ IMAGE_DIR = os.environ['IMG_DIR']
 MAX_IMG_SIZE = 2 * 1024 * 1024 # 2MB
 os.makedirs(IMAGE_DIR, exist_ok=True)
 
-NIKOS_PER_PAGE = 14
-
 connection_str = "mysql+mysqlconnector://{}:{}@{}:{}/{}" \
     .format(os.environ['MYSQL_USER'], os.environ['MYSQL_PASS'], os.environ['MYSQL_URI'], os.environ['MYSQL_PORT'], "nikodex")
 
@@ -59,15 +57,9 @@ def get_all(session: Session, sort_by: dto.SortType):
     return session.scalars(stmt).fetchall()
 
 @run_in_session
-def get_random_niko(session: Session):
-    st_random = select(Niko.id).order_by(func.random()).limit(1).subquery()
-    stmt = select(Niko).options(selectinload(Niko.abilities)).join(st_random, Niko.id == st_random.c.id)
-    return session.scalars(stmt).one()
-
-@run_in_session
-def get_nikos_page(session: Session, page: int, sort_by: dto.SortType):
+def get_nikos_page(session: Session, page: int, count: int, sort_by: dto.SortType):
     if (int(page) < 1): return None
-    stmt = get_nikos_wrapper(sort_by).offset(NIKOS_PER_PAGE * (int(page) - 1)).limit(NIKOS_PER_PAGE)
+    stmt = get_nikos_wrapper(sort_by).offset(int(count) * (int(page) - 1)).limit(int(count))
     return session.scalars(stmt).fetchall()
 
 @run_in_session

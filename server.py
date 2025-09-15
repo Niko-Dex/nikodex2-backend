@@ -122,17 +122,13 @@ app.add_middleware(
 def get_all_nikos(sort_by: dto.SortType = dto.SortType.oldest_added):
     return service.get_all(sort_by)
 
-@app.get("/nikos/random", response_model=dto.NikoResponse, tags=['nikos'])
-def get_random_nikos():
-    return service.get_random_niko()
-
 @app.get("/nikos/name", response_model=List[dto.NikoResponse], tags=['nikos'])
 def get_niko_by_name(name = "Niko"):
     return service.get_by_name(name)
 
 @app.get("/nikos/page", response_model=List[dto.NikoResponse], tags=['nikos'])
-def get_nikos_page(page = 1, sort_by: dto.SortType = dto.SortType.oldest_added):
-    res = service.get_nikos_page(page, sort_by)
+def get_nikos_page(page = 1, count = 14, sort_by: dto.SortType = dto.SortType.oldest_added):
+    res = service.get_nikos_page(page, count, sort_by)
     if res is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
     return res
