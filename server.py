@@ -130,10 +130,6 @@ def get_random_nikos():
 def get_niko_by_name(name = "Niko"):
     return service.get_by_name(name)
 
-@app.get("/nikos/name/nolist", response_model=dto.NikoResponse, tags=['nikos'])
-def get_niko_by_name(name = "Niko"):
-    return service.get_by_name(name)
-
 @app.get("/nikos/page", response_model=List[dto.NikoResponse], tags=['nikos'])
 def get_nikos_page(page = 1, count = 14, sort_by: dto.SortType = dto.SortType.oldest_added):
     res = service.get_nikos_page(page, count, sort_by)
