@@ -122,6 +122,10 @@ app.add_middleware(
 def get_all_nikos(sort_by: dto.SortType = dto.SortType.oldest_added):
     return service.get_all(sort_by)
 
+@app.get("/nikos/random", response_model=dto.NikoResponse, tags=['nikos'])
+def get_random_nikos():
+    return service.get_random_niko()
+
 @app.get("/nikos/name", response_model=List[dto.NikoResponse], tags=['nikos'])
 def get_niko_by_name(name = "Niko"):
     return service.get_by_name(name)

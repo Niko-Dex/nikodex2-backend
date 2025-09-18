@@ -63,6 +63,12 @@ def get_nikos_page(session: Session, page: int, count: int, sort_by: dto.SortTyp
     return session.scalars(stmt).fetchall()
 
 @run_in_session
+def get_random_niko(session: Session):
+    st_random = select(Niko.id).order_by(func.random()).limit(1).subquery()
+    stmt = select(Niko).options(selectinload(Niko.abilities)).join(st_random, Niko.id == st_random.c.id)
+    return session.scalars(stmt).one()
+
+@run_in_session
 def get_by_name(session: Session, name: str):
     stmt = select(Niko).options(selectinload(Niko.abilities)).where(Niko.name.like('%' + name + '%'))
     return session.scalars(stmt).fetchall()
