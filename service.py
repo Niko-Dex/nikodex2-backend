@@ -3,7 +3,7 @@ import datetime
 from dotenv import load_dotenv
 from fastapi import UploadFile
 from fastapi.responses import FileResponse
-from models import Niko, Ability, Blog, SubmitUser, User
+from models import Niko, Ability, Blog, Submission, SubmitUser, User
 from sqlalchemy.orm import selectinload, sessionmaker, Session
 from sqlalchemy import create_engine, desc, select, func, asc
 from sqlalchemy.dialects.mysql import insert
@@ -114,7 +114,7 @@ def get_niko_by_userid(session: Session, user_id: int):
         .options(selectinload(Niko.abilities))
         .where(Niko.author_id == user_id)
     )
-    res = session.scalars(stmt).one()
+    res = session.scalars(stmt).fetchall()
     return res
 
 
@@ -280,6 +280,7 @@ async def upload_image(session: Session, id: int, file: UploadFile):
     return True
 
 
+
 @run_in_session
 def delete_image(session: Session, id: int):
     entity = session.execute(select(Niko).where(Niko.id == id)).scalar_one_or_none()
@@ -303,6 +304,51 @@ def get_image(session: Session, id: int):
     if not os.path.exists(path):
         path = os.path.join("images/default.png")
     return FileResponse(path, media_type="image/png")
+
+
+@run_in_session
+def get_submissions(session: Session):
+    stmt = select(Submission).order_by(desc(Submission.submit_date))
+    return session.scalars(stmt).fetchall()
+
+
+@run_in_session
+def get_submission_by_id(session: Session, id: int):
+    stmt = select(Submission).where(Submission.id == id).limit(1)
+    return session.scalars(stmt).one()
+
+
+@run_in_session
+def get_submissions_by_userid(session: Session, user_id: int):
+    stmt = select(Submission).where(Submission.user_id == user_id)
+    return session.scalars(stmt).fetchall()
+
+
+@run_in_session
+def insert_submission(session: Session, req: dto.SubmissionRequest, user_id: int):
+    stmt = insert(Submission).values(
+        user_id=user_id,
+        name=req.name,
+        description=req.desc,
+        full_desc=req.full_desc,
+        image="",
+        submit_date=datetime.datetime.now(),
+    )
+    session.execute(stmt)
+    session.commit()
+
+
+@run_in_session
+def delete_submission(session: Session, id: int):
+    entity = execute(select(Submission).where(Submission.id == id)).scalar_one()
+    session.delete(entity)
+    session.commit()
+
+
+@run_in_session
+def get_user_by_id(session: Session, id: int):
+    stmt = select(User).where(User.id == id)
+    return session.scalars(stmt).one()
 
 
 @run_in_session

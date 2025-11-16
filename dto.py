@@ -18,11 +18,11 @@ class NikoRequest(BaseModel):
     description: str
     author: str
     full_desc: str
+    author_id: int | None
 
 
 class NikoResponse(NikoRequest):
     id: int
-    author_id: int | None
     abilities: List[AbilityResponse]
 
 
@@ -41,6 +41,18 @@ class UserChangeRequest(BaseModel):
     new_username: str
     new_password: str
     new_description: str
+
+
+class SubmissionRequest(BaseModel):
+    name: str
+    description: str
+    full_desc: str
+
+
+class SubmissionResponse(SubmissionRequest):
+    id: int
+    image: str
+    user_id: int
 
 
 class SortType(Enum):

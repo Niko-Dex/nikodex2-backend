@@ -54,6 +54,7 @@ class TokenData(BaseModel):
 
 
 class User(BaseModel):
+    id: int
     username: str
     description: str
     is_admin: bool
@@ -166,7 +167,7 @@ def get_niko_by_id(id=1):
     return res
 
 
-@app.get("/nikos/user", response_model=dto.NikoResponse, tags=["nikos"])
+@app.get("/nikos/user", response_model=List[dto.NikoResponse], tags=["nikos"])
 def get_niko_by_userid(id: int):
     res = service.get_niko_by_userid(id)
     if res is None:
@@ -236,6 +237,9 @@ def post_ability(
     ability: dto.AbilityRequest,
     current_user: Annotated[User, Depends(get_current_user)],
 ):
+    if not current_user.is_admin:
+        raise auth_err
+
     res = service.insert_ability(ability)
     if res is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
@@ -248,6 +252,9 @@ def update_ability(
     ability: dto.AbilityRequest,
     current_user: Annotated[User, Depends(get_current_user)],
 ):
+    if not current_user.is_admin:
+        raise auth_err
+
     res = service.update_ability(id, ability)
     if res is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
@@ -256,6 +263,9 @@ def update_ability(
 
 @app.delete("/abilities", tags=["abilities"])
 def delete_ability(id: int, current_user: Annotated[User, Depends(get_current_user)]):
+    if not current_user.is_admin:
+        raise auth_err
+
     res = service.delete_ability(id)
     if res is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
@@ -279,6 +289,9 @@ def get_blog_by_id(id: int):
 def post_blog(
     blog: dto.BlogRequest, current_user: Annotated[User, Depends(get_current_user)]
 ):
+    if not current_user.is_admin:
+        raise auth_err
+
     res = service.post_blog(blog)
     if res is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
@@ -291,6 +304,9 @@ def update_blog(
     blog: dto.BlogRequest,
     current_user: Annotated[User, Depends(get_current_user)],
 ):
+    if not current_user.is_admin:
+        raise auth_err
+
     res = service.update_blog(id, blog)
     if res is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
@@ -299,10 +315,58 @@ def update_blog(
 
 @app.delete("/blogs", tags=["blogs"])
 def delete_blog(id: int, current_user: Annotated[User, Depends(get_current_user)]):
+    if not current_user.is_admin:
+        raise auth_err
+
     res = service.delete_blog(id)
     if res is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
+
+
+@app.get(
+    "/submissions", response_model=List[dto.SubmissionResponse], tags=["submissions"]
+)
+def get_submissions():
+    res = service.get_submissions()
+    return res
+
+
+@app.get("/submissions/", response_model=dto.SubmissionResponse, tags=["submissions"])
+def get_submission_by_id(id: int):
+    res = service.get_submission_by_id(id)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    return res
+
+
+@app.get(
+    "/submissions/user",
+    response_model=List[dto.SubmissionResponse],
+    tags=["submissions"],
+)
+def get_submission_by_userid(user_id: int):
+    res = service.get_submission_by_userid(user_id)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    return res
+
+
+@app.post("/submissions", tags=["submissions"])
+def post_submission(
+    submission: dto.SubmissionRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    service.insert_submission(submission, current_user.id)
+    return {"msg": "Inserted submission"}
+
+
+@app.delete("/submissions", tags=["submissions"])
+def delete_submission(
+    id: int, current_user: Annotated[User, Depends(get_current_user)]
+):
+    service.delete_submission(id)
+    return {"msg": "Deleted submission"}
 
 
 @app.post("/users", tags=["auth"])
@@ -330,6 +394,14 @@ async def login_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return Token(access_token=access_token, token_type="bearer")
+
+
+@app.get("/users/", response_model=User, tags=["auth"])
+def get_user_by_id(id: int):
+    res = service.get_user_by_id(id)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    return res
 
 
 @app.get("/users/me", response_model=User, tags=["auth"])

@@ -21,7 +21,7 @@ class Niko(Base):
     doc: Mapped[str] = mapped_column(String(255))
     author: Mapped[str] = mapped_column(String(255))
     full_desc: Mapped[str] = mapped_column(String(1023))
-    author_id: Mapped[int] = mapped_column()
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
 
     abilities: Mapped[List["Ability"]] = relationship(back_populates="niko")
 
@@ -85,3 +85,15 @@ class SubmitUser(Base):
     last_submit_on: Mapped[int] = mapped_column(BigInteger())
     is_banned: Mapped[bool] = mapped_column(Boolean, default=False)
     ban_reason: Mapped[str] = mapped_column(String(1023), default="")
+
+
+class Submission(Base):
+    __tablename__ = "submissions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    submit_date: Mapped[datetime] = mapped_column(DateTime())
+    name: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str] = mapped_column(String(255))
+    full_desc: Mapped[str] = mapped_column(String(1023))
+    image: Mapped[str] = mapped_column(String(1023))
