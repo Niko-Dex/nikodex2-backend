@@ -130,7 +130,7 @@ def insert_niko(session: Session, req: dto.NikoRequest):
         description=req.description,
         doc="",
         author=req.author,
-        full_desc=req.full_desc,
+        full_desc=req.full_desc
     )
 
     session.execute(stmt)
@@ -340,7 +340,7 @@ def insert_submission(session: Session, req: dto.SubmissionRequest, user_id: int
 
 @run_in_session
 def delete_submission(session: Session, id: int):
-    entity = execute(select(Submission).where(Submission.id == id)).scalar_one()
+    entity = session.execute(select(Submission).where(Submission.id == id)).scalar_one()
     session.delete(entity)
     session.commit()
 
