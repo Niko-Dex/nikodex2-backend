@@ -7,8 +7,10 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 
+
 class Base(DeclarativeBase):
     pass
+
 
 class Niko(Base):
     __tablename__ = "nikos"
@@ -19,10 +21,9 @@ class Niko(Base):
     doc: Mapped[str] = mapped_column(String(255))
     author: Mapped[str] = mapped_column(String(255))
     full_desc: Mapped[str] = mapped_column(String(1023))
+    author_id: Mapped[int] = mapped_column()
 
-    abilities: Mapped[List["Ability"]] = relationship(
-        back_populates="niko"
-    )
+    abilities: Mapped[List["Ability"]] = relationship(back_populates="niko")
 
     def __init__(self, id, name, description, full_desc, image):
         self.id = id
@@ -37,6 +38,7 @@ class Niko(Base):
     def set_abilities_list(self, lis: list):
         self.abilities = lis
 
+
 class Ability(Base):
     __tablename__ = "abilities"
 
@@ -48,11 +50,12 @@ class Ability(Base):
 
     def __init__(self, id, name, niko_id):
         self.id = id
-        self.name = name;
+        self.name = name
         self.niko_id = niko_id
 
     def __repr__(self):
         return f"Ability(id={self.id};name={self.name};niko_id={self.niko_id})"
+
 
 class Blog(Base):
     __tablename__ = "blogs"
@@ -63,6 +66,7 @@ class Blog(Base):
     content: Mapped[str] = mapped_column(Text())
     post_datetime: Mapped[datetime] = mapped_column(DateTime())
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -70,6 +74,8 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(255))
     description: Mapped[str] = mapped_column(String(255))
     hashed_pass: Mapped[str] = mapped_column(String(1023))
+    is_admin: Mapped[bool] = mapped_column(Boolean)
+
 
 class SubmitUser(Base):
     __tablename__ = "submit_users"

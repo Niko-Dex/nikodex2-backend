@@ -11,11 +11,17 @@ from models import User
 load_dotenv()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-connection_str = "mysql+mysqlconnector://{}:{}@{}:{}/{}" \
-    .format(os.environ['MYSQL_USER'], os.environ['MYSQL_PASS'], os.environ['MYSQL_URI'], os.environ['MYSQL_PORT'], "nikodex")
+connection_str = "mysql+mysqlconnector://{}:{}@{}:{}/{}".format(
+    os.environ["MYSQL_USER"],
+    os.environ["MYSQL_PASS"],
+    os.environ["MYSQL_URI"],
+    os.environ["MYSQL_PORT"],
+    "nikodex",
+)
 
 engine = create_engine(connection_str, echo=True)
 session = Session(engine)
+
 
 def ask_pass():
     while True:
@@ -30,6 +36,7 @@ def ask_pass():
         else:
             print("New password do not match!")
 
+
 def ask_username():
     while True:
         username = input("Enter username: ")
@@ -37,6 +44,7 @@ def ask_username():
             return username
         else:
             print("Invalid username!")
+
 
 def confirm(msg: str):
     while True:
@@ -48,12 +56,16 @@ def confirm(msg: str):
         else:
             print("Invalid input!")
 
+
 def list_accounts():
     stmt = select(User)
     data = session.scalars(stmt).fetchall()
     print("")
-    print(f"List of active admin accounts in database: {', '.join([i.username for i in data])}")
+    print(
+        f"List of active admin accounts in database: {', '.join([i.username for i in data])}"
+    )
     return
+
 
 def add_account():
     print("Please fill in the necessary informations below.")
@@ -64,7 +76,8 @@ def add_account():
     stmt = insert(User).values(
         username=username,
         hashed_pass=pwd_context.hash(password),
-        description=description
+        description=description,
+        is_admin=True,
     )
     session.execute(stmt)
     session.commit()
@@ -72,9 +85,12 @@ def add_account():
     print("Account created!")
     return
 
+
 def edit_account():
     username = ask_username()
-    user = session.execute(select(User).where(User.username == username)).scalar_one_or_none()
+    user = session.execute(
+        select(User).where(User.username == username)
+    ).scalar_one_or_none()
     if user == None:
         print("")
         print("User not found in database!")
@@ -90,14 +106,19 @@ def edit_account():
     print("Account edited!")
     return
 
+
 def delete_account():
     username = ask_username()
-    user = session.execute(select(User).where(User.username == username)).scalar_one_or_none()
+    user = session.execute(
+        select(User).where(User.username == username)
+    ).scalar_one_or_none()
     if user == None:
         print("")
         print("User not found in database!")
         return
-    if confirm(f"Are you sure you want to delete account with name {username}? You CANNOT undo this action"):
+    if confirm(
+        f"Are you sure you want to delete account with name {username}? You CANNOT undo this action"
+    ):
         session.delete(user)
         session.commit()
         print("Account deleted!")
@@ -105,32 +126,19 @@ def delete_account():
         print("Canceled!")
     return
 
+
 def exit_manager():
     print("Closing...")
     session.close()
     exit(0)
 
+
 func_choice = {
-    "1": {
-        "func": list_accounts,
-        "display_name": "List admin accounts"
-    },
-    "2": {
-        "func": add_account,
-        "display_name": "Add an admin account"
-    },
-    "3": {
-        "func": edit_account,
-        "display_name": "Edit an admin account"
-    },
-    "4": {
-        "func": delete_account,
-        "display_name": "Delete an admin account"
-    },
-    "5": {
-        "func": exit_manager,
-        "display_name": "Exit"
-    }
+    "1": {"func": list_accounts, "display_name": "List admin accounts"},
+    "2": {"func": add_account, "display_name": "Add an admin account"},
+    "3": {"func": edit_account, "display_name": "Edit an admin account"},
+    "4": {"func": delete_account, "display_name": "Delete an admin account"},
+    "5": {"func": exit_manager, "display_name": "Exit"},
 }
 
 print("Account manager for Nikodex")
