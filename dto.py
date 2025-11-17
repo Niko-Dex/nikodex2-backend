@@ -1,7 +1,9 @@
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import List
 from pydantic import BaseModel
+from fastapi import Form
 
 
 class AbilityRequest(BaseModel):
@@ -53,6 +55,13 @@ class SubmissionResponse(SubmissionRequest):
     id: int
     image: str
     user_id: int
+
+
+@dataclass
+class SubmitForm:
+    name: str = Form()
+    description: str = Form()
+    full_desc: str = Form()
 
 
 class SortType(Enum):

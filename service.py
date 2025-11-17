@@ -11,6 +11,7 @@ from PIL import Image
 import io
 import dto
 from passlib.context import CryptContext
+import uuid
 
 load_dotenv()
 
@@ -325,22 +326,59 @@ def get_submissions_by_userid(session: Session, user_id: int):
 
 
 @run_in_session
-def insert_submission(session: Session, req: dto.SubmissionRequest, user_id: int):
+def get_submission_image(session: Session, id: int):
+    entity = session.execute(select(Submission).where(Submission.id == id)).scalar_one_or_none()
+    if entity is None:
+        return None
+    if len(entity.image) == 0:
+        return FileResponse(os.path.join("images/default.png"), media_type="image/png")
+
+    path = os.path.join(IMAGE_DIR, f"{entity.image}")
+    if not os.path.exists(path):
+        path = os.path.join("images/default.png")
+    return FileResponse(path, media_type="image/png")
+
+
+@run_in_session
+async def insert_submission(session: Session, req: dto.SubmitForm, user_id: int, file: UploadFile):
+    if not file.content_type.startswith("image/"):
+        return False
+    if file.size > MAX_IMG_SIZE:
+        return False
+    data = await file.read()
+    try:
+        image = Image.open(io.BytesIO(data))
+    except:
+        return False
+
+    id_str = str(uuid.uuid4())
+    image = image.convert("RGBA")
+    path = os.path.join(IMAGE_DIR, f"{id_str}.png")
+
+    image.save(path, format="PNG")
+
     stmt = insert(Submission).values(
         user_id=user_id,
         name=req.name,
-        description=req.desc,
+        description=req.description,
         full_desc=req.full_desc,
-        image="",
+        image=f"{id_str}.png",
         submit_date=datetime.datetime.now(),
     )
     session.execute(stmt)
     session.commit()
+    return True
 
 
 @run_in_session
 def delete_submission(session: Session, id: int):
     entity = session.execute(select(Submission).where(Submission.id == id)).scalar_one()
+
+    if (len(entity.image) > 0):
+        path = os.path.join(IMAGE_DIR, entity.image)
+        if (os.path.exists(path)):
+            os.remove(path)
+
     session.delete(entity)
     session.commit()
 
