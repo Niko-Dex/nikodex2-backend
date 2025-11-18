@@ -123,6 +123,9 @@ def get_niko_by_userid(session: Session, user_id: int):
 def get_nikos_count(session: Session):
     return session.query(func.count(Niko.id)).one()[0]
 
+@run_in_session
+def get_user_count(session: Session):
+    return session.query(func.count(User.id)).one()[0]
 
 @run_in_session
 def insert_niko(session: Session, req: dto.NikoRequest):
@@ -384,10 +387,20 @@ def delete_submission(session: Session, id: int):
 
 
 @run_in_session
+def get_user_by_name(session: Session, username: str):
+    stmt = select(User).where(User.username == username)
+    return session.scalars(stmt).one()
+
+@run_in_session
 def get_user_by_id(session: Session, id: int):
     stmt = select(User).where(User.id == id)
     return session.scalars(stmt).one()
 
+@run_in_session
+def get_user_by_usersearch(session: Session, username: str, page: int, count: int):
+    stmt = select(User).where(User.username.like(f"%{username}%"))
+    stmt = stmt.offset(int(count) * (int(page) - 1)).limit(int(count))
+    return session.scalars(stmt).fetchall()
 
 @run_in_session
 def insert_user(session: Session, req: dto.UserChangeRequest):

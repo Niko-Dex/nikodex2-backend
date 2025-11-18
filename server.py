@@ -413,6 +413,12 @@ async def login_token(
     )
     return Token(access_token=access_token, token_type="bearer")
 
+@app.get("/users/name", response_model=User, tags=["auth"])
+def get_user_by_name(username: str):
+    res = service.get_user_by_name(username)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No user found with that name.")
+    return res
 
 @app.get("/users/", response_model=User, tags=["auth"])
 def get_user_by_id(id: int):
@@ -420,6 +426,17 @@ def get_user_by_id(id: int):
     if res is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
+
+@app.get("/users/usersearch", response_model=List[User], tags=["auth"])
+def get_users_by_namesearch(username: str, page: int = 1, count: int = 14):
+    res = service.get_user_by_usersearch(username, page, count)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No users found.")
+    return res
+
+@app.get("/users/count", tags=["auth"])
+def get_user_count():
+    return service.get_user_count()
 
 
 @app.get("/users/me", response_model=User, tags=["auth"])
