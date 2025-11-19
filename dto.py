@@ -6,6 +6,10 @@ from pydantic import BaseModel
 from fastapi import Form
 
 
+class UserResponse(BaseModel):
+    username: str
+
+
 class AbilityRequest(BaseModel):
     name: str
     niko_id: int
@@ -26,6 +30,7 @@ class NikoRequest(BaseModel):
 class NikoResponse(NikoRequest):
     id: int
     abilities: List[AbilityResponse]
+    user: UserResponse | None
 
 
 class BlogRequest(BaseModel):

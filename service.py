@@ -50,7 +50,7 @@ def run_in_session(func):
 
 
 def get_nikos_wrapper(sort_by: dto.SortType):
-    stmt = select(Niko).options(selectinload(Niko.abilities))
+    stmt = select(Niko).options(selectinload(Niko.abilities), selectinload(Niko.user))
 
     if sort_by == dto.SortType.name_ascending:
         stmt = stmt.order_by(asc(Niko.name))
@@ -85,7 +85,7 @@ def get_random_niko(session: Session):
     st_random = select(Niko.id).order_by(func.random()).limit(1).subquery()
     stmt = (
         select(Niko)
-        .options(selectinload(Niko.abilities))
+        .options(selectinload(Niko.abilities), selectinload(Niko.user))
         .join(st_random, Niko.id == st_random.c.id)
     )
     return session.scalars(stmt).one()
@@ -95,7 +95,7 @@ def get_random_niko(session: Session):
 def get_by_name(session: Session, name: str):
     stmt = (
         select(Niko)
-        .options(selectinload(Niko.abilities))
+        .options(selectinload(Niko.abilities), selectinload(Niko.user))
         .where(Niko.name.like("%" + name + "%"))
     )
     return session.scalars(stmt).fetchall()
@@ -103,7 +103,7 @@ def get_by_name(session: Session, name: str):
 
 @run_in_session
 def get_niko_by_id(session: Session, id: int):
-    stmt = select(Niko).options(selectinload(Niko.abilities)).where(Niko.id == id)
+    stmt = select(Niko).options(selectinload(Niko.abilities), selectinload(Niko.user)).where(Niko.id == id)
     res = session.scalars(stmt).one()
     return res
 
@@ -112,7 +112,7 @@ def get_niko_by_id(session: Session, id: int):
 def get_niko_by_userid(session: Session, user_id: int):
     stmt = (
         select(Niko)
-        .options(selectinload(Niko.abilities))
+        .options(selectinload(Niko.abilities), selectinload(Niko.user))
         .where(Niko.author_id == user_id)
     )
     res = session.scalars(stmt).fetchall()

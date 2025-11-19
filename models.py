@@ -25,6 +25,8 @@ class Niko(Base):
 
     abilities: Mapped[List["Ability"]] = relationship(back_populates="niko")
 
+    user: Mapped["User"] = relationship(back_populates="nikos")
+
     def __init__(self, id, name, description, full_desc, image):
         self.id = id
         self.name = name
@@ -75,6 +77,8 @@ class User(Base):
     description: Mapped[str] = mapped_column(String(255))
     hashed_pass: Mapped[str] = mapped_column(String(1023))
     is_admin: Mapped[bool] = mapped_column(Boolean)
+
+    nikos: Mapped[List["Niko"]] = relationship(back_populates="user")
 
 
 class SubmitUser(Base):
