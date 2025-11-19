@@ -143,16 +143,27 @@ def insert_niko(session: Session, req: dto.NikoRequest):
 
 
 @run_in_session
-def update_niko(session: Session, id: int, req: dto.NikoRequest):
-    entity = session.execute(select(Niko).where(Niko.id == id)).scalar_one_or_none()
+def update_niko(session: Session, id: int, req: dto.NikoRequest, user_id: int):
+    entity = session.execute(select(Niko).options(selectinload(Niko.user)).where(Niko.id == id)).scalar_one_or_none()
+
+    allowed = False
     if entity is None:
-        return None
-    entity.name = req.name
-    entity.description = req.description
-    entity.full_desc = req.full_desc
-    entity.author = req.author
-    session.commit()
-    return {"msg": "Updated Niko."}
+        return {"msg": "This Niko does not exist.", "err": True}
+    if entity.user.id != user_id:
+        if user.is_admin:
+            allowed = True
+    else:
+        allowed = True
+
+    if allowed:
+        entity.name = req.name
+        entity.description = req.description
+        entity.full_desc = req.full_desc
+        entity.author = req.author
+        session.commit()
+        return {"msg": "Updated Niko.", "err": False}
+    else:
+        return {"msg": "Unauthorized", "err": True}
 
 
 @run_in_session

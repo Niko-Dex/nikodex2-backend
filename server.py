@@ -196,12 +196,10 @@ def update_niko(
     niko: dto.NikoRequest,
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    if not current_user.is_admin:
-        raise auth_err
-
-    res = service.update_niko(id, niko)
-    if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    res = service.update_niko(id, niko, current_user.id)
+    print(res)
+    if res["err"]:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=res.msg)
     return res
 
 
