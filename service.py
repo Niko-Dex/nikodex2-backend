@@ -134,7 +134,8 @@ def insert_niko(session: Session, req: dto.NikoRequest):
         description=req.description,
         doc="",
         author=req.author,
-        full_desc=req.full_desc
+        full_desc=req.full_desc,
+        author_id=req.author_id
     )
 
     session.execute(stmt)
@@ -150,7 +151,7 @@ def update_niko(session: Session, id: int, req: dto.NikoRequest, user_id: int):
     if entity is None:
         return {"msg": "This Niko does not exist.", "err": True}
     if entity.user.id != user_id:
-        if user.is_admin:
+        if entity.user.is_admin:
             allowed = True
     else:
         allowed = True

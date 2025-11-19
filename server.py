@@ -176,6 +176,12 @@ def get_niko_by_userid(id: int):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
     return res
 
+@app.get("/nikos/user/latestid", tags=["nikos"])
+def get_latest_niko_of_user(user_id: int):
+    res = service.get_niko_by_userid(user_id)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+    return res[-1].id
 
 @app.post("/nikos", tags=["nikos"])
 async def post_niko(
@@ -346,7 +352,7 @@ def get_submission_by_id(id: int):
     tags=["submissions"],
 )
 def get_submission_by_userid(user_id: int):
-    res = service.get_submission_by_userid(user_id)
+    res = service.get_submissions_by_userid(user_id)
     if res is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
