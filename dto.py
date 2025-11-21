@@ -22,7 +22,6 @@ class AbilityResponse(AbilityRequest):
 class NikoRequest(BaseModel):
     name: str
     description: str
-    author: str
     full_desc: str
     author_id: int | None
 
@@ -31,6 +30,7 @@ class NikoResponse(NikoRequest):
     id: int
     abilities: List[AbilityResponse]
     user: UserResponse | None
+    author_name: str
 
 
 class BlogRequest(BaseModel):

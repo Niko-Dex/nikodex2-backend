@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 from fastapi import UploadFile
 from fastapi.responses import FileResponse
 from models import Niko, Ability, Blog, Submission, SubmitUser, User, Post
-from sqlalchemy.orm import selectinload, sessionmaker, Session
-from sqlalchemy import create_engine, desc, select, func, asc
+from sqlalchemy.orm import selectinload, sessionmaker, Session, defer
+from sqlalchemy import create_engine, desc, select, func, asc, case
 from sqlalchemy.dialects.mysql import insert
 from PIL import Image
 import io
@@ -82,6 +82,7 @@ def get_nikos_page(session: Session, page: int, count: int, sort_by: dto.SortTyp
 
 @run_in_session
 def get_random_niko(session: Session):
+    expr = case((Niko.author_id == None, Niko.author), else_="GG").label("author")
     st_random = select(Niko.id).order_by(func.random()).limit(1).subquery()
     stmt = (
         select(Niko)

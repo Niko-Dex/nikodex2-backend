@@ -6,6 +6,7 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 
 
 class Base(DeclarativeBase):
@@ -27,6 +28,17 @@ class Niko(Base):
 
     user: Mapped["User"] = relationship(back_populates="nikos")
 
+    @hybrid_property
+    def author_name(self):
+        if self.author_id == None:
+            return self.author
+        else:
+            if self.user == None:
+                return "Could not find author_name.."
+            else:
+                return self.user.username
+
+
     def __init__(self, id, name, description, full_desc, image):
         self.id = id
         self.name = name
@@ -35,7 +47,7 @@ class Niko(Base):
         self.abilities = list()
 
     def __repr__(self):
-        return f"Niko(id={self.id};name={self.name};description={self.description};full_desc={self.full_desc})"
+        return f"Niko(id={self.id};name={self.name};description={self.description};full_desc={self.full_desc};author_id={self.author_id})"
 
     def set_abilities_list(self, lis: list):
         self.abilities = lis
