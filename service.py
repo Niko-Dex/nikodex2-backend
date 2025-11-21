@@ -3,7 +3,7 @@ import datetime
 from dotenv import load_dotenv
 from fastapi import UploadFile
 from fastapi.responses import FileResponse
-from models import Niko, Ability, Blog, Submission, SubmitUser, User
+from models import Niko, Ability, Blog, Submission, SubmitUser, User, Post
 from sqlalchemy.orm import selectinload, sessionmaker, Session
 from sqlalchemy import create_engine, desc, select, func, asc
 from sqlalchemy.dialects.mysql import insert
@@ -296,7 +296,6 @@ async def upload_image(session: Session, id: int, file: UploadFile):
     return True
 
 
-
 @run_in_session
 def delete_image(session: Session, id: int):
     entity = session.execute(select(Niko).where(Niko.id == id)).scalar_one_or_none()
@@ -403,10 +402,12 @@ def get_user_by_name(session: Session, username: str):
     stmt = select(User).where(User.username == username)
     return session.scalars(stmt).one()
 
+
 @run_in_session
 def get_user_by_id(session: Session, id: int):
     stmt = select(User).where(User.id == id)
     return session.scalars(stmt).one()
+
 
 @run_in_session
 def get_user_by_usersearch(session: Session, username: str, page: int, count: int):
@@ -414,8 +415,15 @@ def get_user_by_usersearch(session: Session, username: str, page: int, count: in
     stmt = stmt.offset(int(count) * (int(page) - 1)).limit(int(count))
     return session.scalars(stmt).fetchall()
 
+
 @run_in_session
 def insert_user(session: Session, req: dto.UserChangeRequest):
+    same_name_entity = session.execute(
+        select(User).where(User.username == req.new_username)
+    ).scalar_one_or_none()
+    if same_name_entity is not None:
+        return False
+
     if len(req.new_username) == 0:
         return False
 
@@ -439,6 +447,12 @@ def insert_user(session: Session, req: dto.UserChangeRequest):
 
 @run_in_session
 def update_user(session: Session, username: str, req: dto.UserChangeRequest):
+    same_name_entity = session.execute(
+        select(User).where(User.username == req.new_username)
+    ).scalar_one_or_none()
+    if same_name_entity is not None:
+        return False
+
     entity = session.execute(
         select(User).where(User.username == username)
     ).scalar_one_or_none()
@@ -483,6 +497,71 @@ def post_submit_user(session: Session, user_id: str, req: dto.SubmitUserRequest)
     session.execute(stmt)
     session.commit()
     return {"msg": "Updated submit user."}
+
+
+@run_in_session
+def get_posts(session: Session):
+    stmt = select(Post).options(selectinload(Post.user))
+    return session.scalars(stmt).fetchall()
+
+
+@run_in_session
+def get_post_userid(session: Session, user_id: int):
+    stmt = select(Post).where(Post.user_id == user_id).options(selectinload(Post.user))
+    return session.scalars(stmt).fetchall()
+
+
+@run_in_session
+def get_post_id(session: Session, id: int):
+    stmt = select(Post).where(Post.id == id).options(selectinload(Post.user))
+    return session.scalars(stmt).one_or_none()
+
+
+@run_in_session
+def get_post_image(session: Session, id: int):
+    entity = session.execute(
+        select(Post).where(Post.id == id).options(selectinload(Post.user))
+    ).scalar_one_or_none()
+    if entity is None:
+        return None
+    if len(entity.image) == 0:
+        return FileResponse(os.path.join("images/default.png"), media_type="image/png")
+
+    path = os.path.join(IMAGE_DIR, f"{entity.image}")
+    if not os.path.exists(path):
+        path = os.path.join("images/default.png")
+    return FileResponse(path, media_type="image/png")
+
+
+@run_in_session
+async def insert_post(session: Session, user_id: int, req: dto.PostRequestForm, file: UploadFile):
+    if not file.content_type.startswith("image/"):
+        return {"msg": "Not a valid file!", "err": True}
+    if file.size > MAX_IMG_SIZE:
+        return {"msg": "File too large!", "err": True}
+    data = await file.read()
+    try:
+        image = Image.open(io.BytesIO(data))
+    except:
+        return {"msg": "Failed to open image!", "err": True}
+
+    id_str = str(uuid.uuid4())
+    image = image.convert("RGBA")
+    path = os.path.join(IMAGE_DIR, f"{id_str}.png")
+
+    image.save(path, format="PNG")
+
+    stmt = insert(Post).values(
+        user_id=user_id,
+        title=req.title,
+        post_datetime=datetime.datetime.now(),
+        content=req.content,
+        image=f"{id_str}.png"
+    );
+
+    session.execute(stmt)
+    session.commit()
+    return {"msg": "Inserted Post.", "err": False}
 
 
 def close_connection():

@@ -88,3 +88,22 @@ class SubmitUserResponse(BaseModel):
     last_submit_on: int
     is_banned: bool
     ban_reason: str
+
+
+class PostRequest(BaseModel):
+    title: str
+    content: str
+
+
+@dataclass
+class PostRequestForm:
+    title: str = Form()
+    content: str = Form()
+
+
+class PostResponse(BaseModel):
+    id: int
+    title: str
+    content: str
+    post_datetime: datetime
+    user: UserResponse

@@ -73,12 +73,13 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(String(255))
+    username: Mapped[str] = mapped_column(String(255), unique=True)
     description: Mapped[str] = mapped_column(String(255))
     hashed_pass: Mapped[str] = mapped_column(String(1023))
     is_admin: Mapped[bool] = mapped_column(Boolean)
 
     nikos: Mapped[List["Niko"]] = relationship(back_populates="user")
+    posts: Mapped[List["Post"]] = relationship(back_populates="user")
 
 
 class SubmitUser(Base):
@@ -101,3 +102,24 @@ class Submission(Base):
     description: Mapped[str] = mapped_column(String(255))
     full_desc: Mapped[str] = mapped_column(String(1023))
     image: Mapped[str] = mapped_column(String(1023))
+
+
+class Post(Base):
+    __tablename__ = "posts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    post_datetime: Mapped[datetime] = mapped_column(DateTime())
+    title: Mapped[str] = mapped_column(String(255))
+    content: Mapped[str] = mapped_column(String(1023))
+    image: Mapped[str] = mapped_column(String(1023))
+
+    user: Mapped["User"] = relationship(back_populates="posts")
+
+
+class PostNikoAgenda(Base):
+    __tablename__ = "postniko_agenda"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    niko_id: Mapped[int] = mapped_column(ForeignKey("nikos.id"))
+    post_id: Mapped[int] = mapped_column(ForeignKey("posts.id"))
