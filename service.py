@@ -134,7 +134,7 @@ def insert_niko(session: Session, req: dto.NikoRequest):
         name=req.name,
         description=req.description,
         doc="",
-        author=req.author,
+        author="",
         full_desc=req.full_desc,
         author_id=req.author_id
     )
@@ -146,22 +146,33 @@ def insert_niko(session: Session, req: dto.NikoRequest):
 
 @run_in_session
 def update_niko(session: Session, id: int, req: dto.NikoRequest, user_id: int):
+    user_entity = session.execute(select(User).where(User.id == user_id)).scalar_one_or_none()
     entity = session.execute(select(Niko).options(selectinload(Niko.user)).where(Niko.id == id)).scalar_one_or_none()
 
     allowed = False
     if entity is None:
         return {"msg": "This Niko does not exist.", "err": True}
-    if entity.user.id != user_id:
-        if entity.user.is_admin:
+    if user_entity is None:
+        return {"msg": "Who are you?", "err": True}
+
+    if entity.user is None:
+        if user_entity.is_admin:
             allowed = True
     else:
-        allowed = True
+        if entity.user.id != user_id:
+            if user_entity.is_admin:
+                allowed = True
+        else:
+            allowed = True
 
     if allowed:
         entity.name = req.name
         entity.description = req.description
         entity.full_desc = req.full_desc
-        entity.author = req.author
+        if req.author_id > 0:
+            entity.author_id = req.author_id
+        else:
+            entity.author_id = None
         session.commit()
         return {"msg": "Updated Niko.", "err": False}
     else:
@@ -190,32 +201,103 @@ def get_ability_by_id(session: Session, id: int):
 
 
 @run_in_session
-def insert_ability(session: Session, req: dto.AbilityRequest):
-    stmt = insert(Ability).values(name=req.name, niko_id=req.niko_id)
-    session.execute(stmt)
-    session.commit()
-    return {"msg": "Inserted Ability."}
+def insert_ability(session: Session, req: dto.AbilityRequest, user_id: int):
+    niko_entity = session.execute(
+        select(Niko).where(Niko.id == req.niko_id).options(selectinload(Niko.user))
+    ).scalar_one_or_none()
+    user_entity = session.execute(
+        select(User).where(User.id == user_id)
+    ).scalar_one_or_none()
+    if niko_entity is None:
+        return {"msg": "This Niko is not found.", "err": True}
+
+    print(req.niko_id)
+
+    allowed = False
+    if user_entity.is_admin:
+        allowed = True
+    else:
+        print(niko_entity.user)
+        if niko_entity.user is None:
+            return {"msg": "This Niko does not belong to a user.", "err": True}
+        else:
+            print(niko_entity.user.id)
+            if niko_entity.user.id == user_id:
+                allowed = True
+
+    if allowed:
+        stmt = insert(Ability).values(name=req.name, niko_id=req.niko_id)
+        session.execute(stmt)
+        session.commit()
+        return {"msg": "Inserted Ability.", "err": False}
+    else:
+        return {"msg": "Unauthorized.", "err": False}
 
 
 @run_in_session
-def update_ability(session: Session, id: int, req: dto.AbilityRequest):
+def update_ability(session: Session, id: int, req: dto.AbilityRequest, user_id: int):
+    user_entity = session.execute(select(User).where(User.id == user_id)).scalar_one_or_none()
     entity = session.execute(
-        select(Ability).where(Ability.id == id)
+        select(Ability).where(Ability.id == id).options(selectinload(Ability.niko))
     ).scalar_one_or_none()
     if entity is None:
         return None
-    entity.name = req.name
-    entity.niko_id = req.niko_id
-    session.commit()
-    return {"msg": "Updated Ability."}
+
+    allowed = False
+    if user_entity is None:
+        return {"msg": "Who are you?", "err": True}
+    else:
+        if entity.niko is None:
+            return {"msg": "This Ability does not belong to a Niko :/", "err": True}
+
+        if user_entity.is_admin:
+            allowed = True
+        else:
+            if entity.niko.author_id == user_id:
+                allowed = True
+
+    if allowed:
+        entity.name = req.name
+        entity.niko_id = req.niko_id
+        session.commit()
+        return {"msg": "Updated Ability.", "err": False}
+    else:
+        return {"msg": "Unauthorized", "err": True}
 
 
 @run_in_session
-def delete_ability(session: Session, id: int):
+def delete_ability(session: Session, id: int, user_id: int):
     entity = session.get(Ability, id)
-    session.delete(entity)
-    session.commit()
-    return {"msg": "Deleted Ability."}
+    if entity is None:
+        return None
+
+    allowed = False
+    niko_entity = session.execute(
+        select(Niko).where(Niko.id == entity.niko_id).options(selectinload(Niko.user))
+    ).scalar_one_or_none()
+    user_entity = session.execute(
+        select(User).where(User.id == user_id)
+    ).scalar_one_or_none()
+
+    if niko_entity is None:
+        return {"msg": "This Niko does not exist.", "err": True}
+
+    if user_entity is None:
+        return {"msg": "This user does not exist.", "err": True}
+
+    if niko_entity.user is None:
+        if user_entity.is_admin:
+            allowed = True
+    else:
+        if user_entity.is_admin or niko_entity.user.id == user_id:
+            allowed = True
+
+    if allowed:
+        session.delete(entity)
+        session.commit()
+        return {"msg": "Deleted Ability.", "err": False}
+    else:
+        return {"msg": "Unauthorized.", "err": True}
 
 
 @run_in_session

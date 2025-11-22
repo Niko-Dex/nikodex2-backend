@@ -205,7 +205,7 @@ def update_niko(
     res = service.update_niko(id, niko, current_user.id)
     print(res)
     if res["err"]:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=res.msg)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
     return res
 
 
@@ -243,12 +243,11 @@ def post_ability(
     ability: dto.AbilityRequest,
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    if not current_user.is_admin:
-        raise auth_err
-
-    res = service.insert_ability(ability)
+    res = service.insert_ability(ability, current_user.id)
     if res is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    if res["err"]:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
     return res
 
 
@@ -258,23 +257,21 @@ def update_ability(
     ability: dto.AbilityRequest,
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    if not current_user.is_admin:
-        raise auth_err
-
-    res = service.update_ability(id, ability)
+    res = service.update_ability(id, ability, current_user.id)
     if res is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    if res["err"]:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
     return res
 
 
 @app.delete("/abilities", tags=["abilities"])
 def delete_ability(id: int, current_user: Annotated[User, Depends(get_current_user)]):
-    if not current_user.is_admin:
-        raise auth_err
-
-    res = service.delete_ability(id)
+    res = service.delete_ability(id, current_user.id)
     if res is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+    if res["err"]:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
     return res
 
 
