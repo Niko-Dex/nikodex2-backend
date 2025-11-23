@@ -177,6 +177,9 @@ def update_niko(session: Session, id: int, req: dto.NikoRequest, user_id: int):
         entity.description = req.description
         entity.full_desc = req.full_desc
         if req.author_id > 0:
+            specified_author = session.execute(select(User).where(User.id == req.author_id)).scalar_one_or_none()
+            if specified_author is None:
+                return {"msg": "Specified author ID does not exist.", "err": True}
             entity.author_id = req.author_id
         else:
             entity.author_id = None
