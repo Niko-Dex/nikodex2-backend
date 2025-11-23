@@ -183,9 +183,12 @@ def update_niko(session: Session, id: int, req: dto.NikoRequest, user_id: int):
 def delete_niko(session: Session, id: int):
     delete_image(id)
     entity = session.get(Niko, id)
-    session.delete(entity)
-    session.commit()
-    return {"msg": "Deleted Niko."}
+    if entity is None:
+        return None
+    else:
+        session.delete(entity)
+        session.commit()
+        return entity
 
 
 @run_in_session
@@ -295,7 +298,7 @@ def delete_ability(session: Session, id: int, user_id: int):
     if allowed:
         session.delete(entity)
         session.commit()
-        return {"msg": "Deleted Ability.", "err": False}
+        return entity
     else:
         return {"msg": "Unauthorized.", "err": True}
 
@@ -346,9 +349,12 @@ def update_blog(session: Session, id: int, req: dto.BlogRequest):
 @run_in_session
 def delete_blog(session: Session, id: int):
     entity = session.execute(select(Blog).where(Blog.id == id)).scalar_one()
-    session.delete(entity)
-    session.commit()
-    return {"msg": "Deleted Blog."}
+    if entity is None:
+        return None
+    else:
+        session.delete(entity)
+        session.commit()
+        return entity
 
 
 @run_in_session

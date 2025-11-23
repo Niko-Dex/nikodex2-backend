@@ -21,6 +21,7 @@ import jwt
 from passlib.context import CryptContext
 from contextlib import asynccontextmanager
 import service
+import models
 import dto
 import os
 
@@ -270,8 +271,9 @@ def delete_ability(id: int, current_user: Annotated[User, Depends(get_current_us
     res = service.delete_ability(id, current_user.id)
     if res is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
-    if res["err"]:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
+    if type(res) is dict:
+        if res["err"]:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
     return res
 
 
