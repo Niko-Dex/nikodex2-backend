@@ -50,7 +50,8 @@ def run_in_session(func):
 
 
 def get_nikos_wrapper(sort_by: dto.SortType):
-    stmt = select(Niko).options(selectinload(Niko.abilities), selectinload(Niko.user))
+    stmt = select(Niko).options(selectinload(
+        Niko.abilities), selectinload(Niko.user))
 
     if sort_by == dto.SortType.name_ascending:
         stmt = stmt.order_by(asc(Niko.name))
@@ -82,7 +83,8 @@ def get_nikos_page(session: Session, page: int, count: int, sort_by: dto.SortTyp
 
 @run_in_session
 def get_random_niko(session: Session):
-    expr = case((Niko.author_id == None, Niko.author), else_="GG").label("author")
+    expr = case((Niko.author_id == None, Niko.author),
+                else_="GG").label("author")
     st_random = select(Niko.id).order_by(func.random()).limit(1).subquery()
     stmt = (
         select(Niko)
@@ -104,7 +106,8 @@ def get_by_name(session: Session, name: str):
 
 @run_in_session
 def get_niko_by_id(session: Session, id: int):
-    stmt = select(Niko).options(selectinload(Niko.abilities), selectinload(Niko.user)).where(Niko.id == id)
+    stmt = select(Niko).options(selectinload(Niko.abilities),
+                                selectinload(Niko.user)).where(Niko.id == id)
     res = session.scalars(stmt).one()
     return res
 
@@ -124,9 +127,11 @@ def get_niko_by_userid(session: Session, user_id: int):
 def get_nikos_count(session: Session):
     return session.query(func.count(Niko.id)).one()[0]
 
+
 @run_in_session
 def get_user_count(session: Session):
     return session.query(func.count(User.id)).one()[0]
+
 
 @run_in_session
 def insert_niko(session: Session, req: dto.NikoRequest):
@@ -146,8 +151,10 @@ def insert_niko(session: Session, req: dto.NikoRequest):
 
 @run_in_session
 def update_niko(session: Session, id: int, req: dto.NikoRequest, user_id: int):
-    user_entity = session.execute(select(User).where(User.id == user_id)).scalar_one_or_none()
-    entity = session.execute(select(Niko).options(selectinload(Niko.user)).where(Niko.id == id)).scalar_one_or_none()
+    user_entity = session.execute(select(User).where(
+        User.id == user_id)).scalar_one_or_none()
+    entity = session.execute(select(Niko).options(selectinload(
+        Niko.user)).where(Niko.id == id)).scalar_one_or_none()
 
     allowed = False
     if entity is None:
@@ -206,7 +213,8 @@ def get_ability_by_id(session: Session, id: int):
 @run_in_session
 def insert_ability(session: Session, req: dto.AbilityRequest, user_id: int):
     niko_entity = session.execute(
-        select(Niko).where(Niko.id == req.niko_id).options(selectinload(Niko.user))
+        select(Niko).where(Niko.id == req.niko_id).options(
+            selectinload(Niko.user))
     ).scalar_one_or_none()
     user_entity = session.execute(
         select(User).where(User.id == user_id)
@@ -239,9 +247,11 @@ def insert_ability(session: Session, req: dto.AbilityRequest, user_id: int):
 
 @run_in_session
 def update_ability(session: Session, id: int, req: dto.AbilityRequest, user_id: int):
-    user_entity = session.execute(select(User).where(User.id == user_id)).scalar_one_or_none()
+    user_entity = session.execute(select(User).where(
+        User.id == user_id)).scalar_one_or_none()
     entity = session.execute(
-        select(Ability).where(Ability.id == id).options(selectinload(Ability.niko))
+        select(Ability).where(Ability.id == id).options(
+            selectinload(Ability.niko))
     ).scalar_one_or_none()
     if entity is None:
         return None
@@ -276,7 +286,8 @@ def delete_ability(session: Session, id: int, user_id: int):
 
     allowed = False
     niko_entity = session.execute(
-        select(Niko).where(Niko.id == entity.niko_id).options(selectinload(Niko.user))
+        select(Niko).where(Niko.id == entity.niko_id).options(
+            selectinload(Niko.user))
     ).scalar_one_or_none()
     user_entity = session.execute(
         select(User).where(User.id == user_id)
@@ -336,7 +347,8 @@ def post_blog(session: Session, req: dto.BlogRequest):
 
 @run_in_session
 def update_blog(session: Session, id: int, req: dto.BlogRequest):
-    entity = session.execute(select(Blog).where(Blog.id == id)).scalar_one_or_none()
+    entity = session.execute(select(Blog).where(
+        Blog.id == id)).scalar_one_or_none()
     if entity is None:
         return None
     entity.title = req.title
@@ -359,7 +371,8 @@ def delete_blog(session: Session, id: int):
 
 @run_in_session
 async def upload_image(session: Session, id: int, file: UploadFile):
-    entity = session.execute(select(Niko).where(Niko.id == id)).scalar_one_or_none()
+    entity = session.execute(select(Niko).where(
+        Niko.id == id)).scalar_one_or_none()
     if entity is None:
         return None
 
@@ -387,7 +400,8 @@ async def upload_image(session: Session, id: int, file: UploadFile):
 
 @run_in_session
 def delete_image(session: Session, id: int):
-    entity = session.execute(select(Niko).where(Niko.id == id)).scalar_one_or_none()
+    entity = session.execute(select(Niko).where(
+        Niko.id == id)).scalar_one_or_none()
     if entity is None:
         return None
 
@@ -400,7 +414,8 @@ def delete_image(session: Session, id: int):
 
 @run_in_session
 def get_image(session: Session, id: int):
-    entity = session.execute(select(Niko).where(Niko.id == id)).scalar_one_or_none()
+    entity = session.execute(select(Niko).where(
+        Niko.id == id)).scalar_one_or_none()
     if entity is None:
         return None
 
@@ -430,7 +445,8 @@ def get_submissions_by_userid(session: Session, user_id: int):
 
 @run_in_session
 def get_submission_image(session: Session, id: int):
-    entity = session.execute(select(Submission).where(Submission.id == id)).scalar_one_or_none()
+    entity = session.execute(select(Submission).where(
+        Submission.id == id)).scalar_one_or_none()
     if entity is None:
         return None
     if len(entity.image) == 0:
@@ -475,7 +491,8 @@ async def insert_submission(session: Session, req: dto.SubmitForm, user_id: int,
 
 @run_in_session
 def delete_submission(session: Session, id: int):
-    entity = session.execute(select(Submission).where(Submission.id == id)).scalar_one()
+    entity = session.execute(select(Submission).where(
+        Submission.id == id)).scalar_one()
 
     if (len(entity.image) > 0):
         path = os.path.join(IMAGE_DIR, entity.image)
@@ -539,7 +556,10 @@ def update_user(session: Session, username: str, req: dto.UserChangeRequest):
     same_name_entity = session.execute(
         select(User).where(User.username == req.new_username)
     ).scalar_one_or_none()
-    if same_name_entity is not None:
+    same_description_entity = session.execute(
+        select(User).where(User.description.like(f"%{req.new_description}%"))
+    ).scalar_one_or_none()
+    if same_name_entity is not None and same_description_entity is not None:
         return False
 
     entity = session.execute(
@@ -596,7 +616,8 @@ def get_posts(session: Session):
 
 @run_in_session
 def get_post_userid(session: Session, user_id: int):
-    stmt = select(Post).where(Post.user_id == user_id).options(selectinload(Post.user))
+    stmt = select(Post).where(Post.user_id == user_id).options(
+        selectinload(Post.user))
     return session.scalars(stmt).fetchall()
 
 
@@ -646,7 +667,7 @@ async def insert_post(session: Session, user_id: int, req: dto.PostRequestForm, 
         post_datetime=datetime.datetime.now(),
         content=req.content,
         image=f"{id_str}.png"
-    );
+    )
 
     session.execute(stmt)
     session.commit()

@@ -158,7 +158,8 @@ def get_niko_by_name(name="Niko"):
 def get_nikos_page(page=1, count=14, sort_by: dto.SortType = dto.SortType.oldest_added):
     res = service.get_nikos_page(page, count, sort_by)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
     return res
 
 
@@ -166,7 +167,8 @@ def get_nikos_page(page=1, count=14, sort_by: dto.SortType = dto.SortType.oldest
 def get_niko_by_id(id=1):
     res = service.get_niko_by_id(id)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
     return res
 
 
@@ -174,15 +176,19 @@ def get_niko_by_id(id=1):
 def get_niko_by_userid(id: int):
     res = service.get_niko_by_userid(id)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
     return res
+
 
 @app.get("/nikos/user/latestid", tags=["nikos"])
 def get_latest_niko_of_user(user_id: int):
     res = service.get_niko_by_userid(user_id)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
     return res[-1].id
+
 
 @app.post("/nikos", tags=["nikos"])
 async def post_niko(
@@ -193,7 +199,8 @@ async def post_niko(
 
     res = service.insert_niko(niko)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -206,7 +213,8 @@ def update_niko(
     res = service.update_niko(id, niko, current_user.id)
     print(res)
     if res["err"]:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
     return res
 
 
@@ -217,7 +225,8 @@ def delete_niko(id: int, current_user: Annotated[User, Depends(get_current_user)
 
     res = service.delete_niko(id)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -235,7 +244,8 @@ def get_abilities():
 def get_ability_by_id(id=1):
     res = service.get_ability_by_id(id)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -246,9 +256,11 @@ def post_ability(
 ):
     res = service.insert_ability(ability, current_user.id)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     if res["err"]:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
     return res
 
 
@@ -260,9 +272,11 @@ def update_ability(
 ):
     res = service.update_ability(id, ability, current_user.id)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     if res["err"]:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
     return res
 
 
@@ -270,10 +284,12 @@ def update_ability(
 def delete_ability(id: int, current_user: Annotated[User, Depends(get_current_user)]):
     res = service.delete_ability(id, current_user.id)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     if type(res) is dict:
         if res["err"]:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
     return res
 
 
@@ -286,7 +302,8 @@ def get_all_blogs():
 def get_blog_by_id(id: int):
     res = service.get_blog_by_id(id)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -299,7 +316,8 @@ def post_blog(
 
     res = service.post_blog(blog)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -314,7 +332,8 @@ def update_blog(
 
     res = service.update_blog(id, blog)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -325,7 +344,8 @@ def delete_blog(id: int, current_user: Annotated[User, Depends(get_current_user)
 
     res = service.delete_blog(id)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -341,7 +361,8 @@ def get_submissions():
 def get_submission_by_id(id: int):
     res = service.get_submission_by_id(id)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -353,7 +374,8 @@ def get_submission_by_id(id: int):
 def get_submission_by_userid(user_id: int):
     res = service.get_submissions_by_userid(user_id)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -361,7 +383,8 @@ def get_submission_by_userid(user_id: int):
 def get_submission_image(id: int):
     res = service.get_submission_image(id)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -380,6 +403,7 @@ async def post_submission(
             detail="Not a valid image file, or filesize too big!",
         )
 
+
 @app.delete("/submissions", tags=["submissions"])
 async def delete_submission(
     id: int, current_user: Annotated[User, Depends(get_current_user)]
@@ -396,7 +420,10 @@ async def post_user(user: dto.UserChangeRequest):
     if res:
         return {"msg": "Successfully created user."}
     else:
-        return {"msg": "Creation failed."}
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Couldn't create user."
+        )
 
 
 @app.post("/token", tags=["auth"])
@@ -416,26 +443,33 @@ async def login_token(
     )
     return Token(access_token=access_token, token_type="bearer")
 
+
 @app.get("/users/name", response_model=User, tags=["auth"])
 def get_user_by_name(username: str):
     res = service.get_user_by_name(username)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No user found with that name.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="No user found with that name.")
     return res
+
 
 @app.get("/users/", response_model=User, tags=["auth"])
 def get_user_by_id(id: int):
     res = service.get_user_by_id(id)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
+
 
 @app.get("/users/usersearch", response_model=List[User], tags=["auth"])
 def get_users_by_namesearch(username: str, page: int = 1, count: int = 14):
     res = service.get_user_by_usersearch(username, page, count)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No users found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No users found.")
     return res
+
 
 @app.get("/users/count", tags=["auth"])
 def get_user_count():
