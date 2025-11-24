@@ -148,6 +148,10 @@ def get_all_nikos(sort_by: dto.SortType = dto.SortType.oldest_added):
 def get_random_nikos():
     return service.get_random_niko()
 
+@app.get("/nikos/notd", response_model=dto.NikoResponse, tags=["nikos"])
+def get_notd():
+    return service.get_notd()
+
 
 @app.get("/nikos/name", response_model=List[dto.NikoResponse], tags=["nikos"])
 def get_niko_by_name(name="Niko"):

@@ -3,9 +3,10 @@ import datetime
 from dotenv import load_dotenv
 from fastapi import UploadFile
 from fastapi.responses import FileResponse
-from models import Niko, Ability, Blog, Submission, SubmitUser, User, Post
-from sqlalchemy.orm import selectinload, sessionmaker, Session, defer
-from sqlalchemy import create_engine, desc, select, func, asc, case
+from models import Niko, Ability, Blog, Submission, SubmitUser, User, Post, Notd
+from datetime import datetime, timedelta
+from sqlalchemy.orm import selectinload, sessionmaker, Session
+from sqlalchemy import Sequence, create_engine, delete, desc, exists, select, func, asc, case
 from sqlalchemy.dialects.mysql import insert
 from PIL import Image
 import io
@@ -93,6 +94,44 @@ def get_random_niko(session: Session):
     )
     return session.scalars(stmt).one()
 
+@run_in_session
+def get_notd(session: Session):
+    cnt_stmt = select(func.count()).select_from(Niko)
+    cnt = session.scalar(cnt_stmt)
+    if cnt <= 0:
+        return None
+
+    latest_chosen_notd_stmt = select(Notd).order_by(desc(Notd.chosen_at)).limit(1)
+    latest_chosen_notd = session.scalars(latest_chosen_notd_stmt).all()
+
+    if len(latest_chosen_notd) > 0:
+        latest_chosen_ts = latest_chosen_notd[0].chosen_at
+        refresh_ts = datetime(latest_chosen_ts.year, latest_chosen_ts.month, latest_chosen_ts.day) + timedelta(days=1)
+        now_ts = datetime.now()
+        # not time to refresh yet
+        if now_ts < refresh_ts:
+            return get_niko_by_id(id=latest_chosen_notd[0].niko_id)
+
+    # either db is empty, or it's time to refresh
+    new_notd: Sequence[Niko] = []
+    while True: #! quite dangerous...
+        new_notd_stmt = select(Niko).where(
+            ~exists().where(Notd.niko_id == Niko.id)
+        ).order_by(func.random()).limit(1)
+        new_notd = session.scalars(new_notd_stmt).all()
+        if len(new_notd) <= 0:
+            wipe_notd_stmt = delete(Notd).where(Notd.niko_id > -1)
+            session.execute(wipe_notd_stmt)
+            session.commit()
+        else:
+            break
+
+    new_notd_insert_stmt = insert(Notd).values(
+        niko_id=new_notd[0].id
+    )
+    session.execute(new_notd_insert_stmt)
+    session.commit()
+    return get_niko_by_id(id=new_notd[0].id)
 
 @run_in_session
 def get_by_name(session: Session, name: str):
@@ -176,7 +215,7 @@ def update_niko(session: Session, id: int, req: dto.NikoRequest, user_id: int):
         entity.name = req.name
         entity.description = req.description
         entity.full_desc = req.full_desc
-        if req.author_id > 0:
+        if req.author_id != None and req.author_id >= 0:
             specified_author = session.execute(select(User).where(User.id == req.author_id)).scalar_one_or_none()
             if specified_author is None:
                 return {"msg": "Specified author ID does not exist.", "err": True}
@@ -225,17 +264,13 @@ def insert_ability(session: Session, req: dto.AbilityRequest, user_id: int):
     if niko_entity is None:
         return {"msg": "This Niko is not found.", "err": True}
 
-    print(req.niko_id)
-
     allowed = False
     if user_entity.is_admin:
         allowed = True
     else:
-        print(niko_entity.user)
         if niko_entity.user is None:
             return {"msg": "This Niko does not belong to a user.", "err": True}
         else:
-            print(niko_entity.user.id)
             if niko_entity.user.id == user_id:
                 allowed = True
 
@@ -408,7 +443,10 @@ def delete_image(session: Session, id: int):
     if entity is None:
         return None
 
-    os.remove(os.path.join(IMAGE_DIR, f"niko-{id}.png"))
+    try:
+        os.remove(os.path.join(IMAGE_DIR, f"niko-{id}.png"))
+    except:
+        return None
 
     entity.image = ""
     session.commit()
