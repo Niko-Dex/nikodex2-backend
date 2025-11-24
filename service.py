@@ -1,5 +1,4 @@
 import os
-import datetime
 from dotenv import load_dotenv
 from fastapi import UploadFile
 from fastapi.responses import FileResponse
@@ -376,7 +375,7 @@ def post_blog(session: Session, req: dto.BlogRequest):
         title=req.title,
         content=req.content,
         author=req.author,
-        post_datetime=datetime.datetime.now(),
+        post_datetime=datetime.now(),
     )
     session.execute(stmt)
     session.commit()
@@ -523,7 +522,7 @@ async def insert_submission(session: Session, req: dto.SubmitForm, user_id: int,
         description=req.description,
         full_desc=req.full_desc,
         image=f"{id_str}.png",
-        submit_date=datetime.datetime.now(),
+        submit_date=datetime.now(),
     )
     session.execute(stmt)
     session.commit()
@@ -705,7 +704,7 @@ async def insert_post(session: Session, user_id: int, req: dto.PostRequestForm, 
     stmt = insert(Post).values(
         user_id=user_id,
         title=req.title,
-        post_datetime=datetime.datetime.now(),
+        post_datetime=datetime.now(),
         content=req.content,
         image=f"{id_str}.png"
     )
