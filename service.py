@@ -102,14 +102,14 @@ def get_notd(session: Session):
 
     latest_chosen_notd_stmt = select(Notd).order_by(desc(Notd.chosen_at)).limit(1)
     latest_chosen_notd = session.scalars(latest_chosen_notd_stmt).all()
+    latest_chosen_ts = latest_chosen_notd[0].chosen_at
+    refresh_ts = datetime(latest_chosen_ts.year, latest_chosen_ts.month, latest_chosen_ts.day) + timedelta(days=1)
 
     if len(latest_chosen_notd) > 0:
-        latest_chosen_ts = latest_chosen_notd[0].chosen_at
-        refresh_ts = datetime(latest_chosen_ts.year, latest_chosen_ts.month, latest_chosen_ts.day) + timedelta(days=1)
         now_ts = datetime.now()
         # not time to refresh yet
         if now_ts < refresh_ts:
-            return get_niko_by_id(id=latest_chosen_notd[0].niko_id)
+            return (get_niko_by_id(id=latest_chosen_notd[0].niko_id), refresh_ts)
 
     # either db is empty, or it's time to refresh
     new_notd: Sequence[Niko] = []
@@ -130,7 +130,7 @@ def get_notd(session: Session):
     )
     session.execute(new_notd_insert_stmt)
     session.commit()
-    return get_niko_by_id(id=new_notd[0].id)
+    return (get_niko_by_id(id=new_notd[0].id), refresh_ts)
 
 @run_in_session
 def get_by_name(session: Session, name: str):

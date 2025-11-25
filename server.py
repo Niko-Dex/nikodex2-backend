@@ -149,8 +149,10 @@ def get_random_nikos():
     return service.get_random_niko()
 
 @app.get("/nikos/notd", response_model=dto.NikoResponse, tags=["nikos"])
-def get_notd():
-    return service.get_notd()
+def get_notd(response: Response):
+    data, refresh = service.get_notd()
+    response.headers["X-RefreshAt"] = refresh.astimezone(timezone.utc).isoformat()
+    return data
 
 
 @app.get("/nikos/name", response_model=List[dto.NikoResponse], tags=["nikos"])
