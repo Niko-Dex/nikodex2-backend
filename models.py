@@ -1,13 +1,18 @@
 from datetime import datetime
 from typing import List
-from sqlalchemy import BigInteger, DateTime, String, Text, Boolean, TIMESTAMP
-from sqlalchemy import ForeignKey
-from sqlalchemy.sql import func
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import relationship
+
+from sqlalchemy import (
+    TIMESTAMP,
+    BigInteger,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    String,
+    Text,
+)
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.sql import func
 
 
 class Base(DeclarativeBase):
@@ -23,20 +28,23 @@ class Niko(Base):
     doc: Mapped[str] = mapped_column(String(255))
     author: Mapped[str] = mapped_column(String(255))
     full_desc: Mapped[str] = mapped_column(String(1023))
-    author_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
-    abilities: Mapped[List["Ability"]] = relationship(back_populates="niko", passive_deletes=True)
+    author_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=True
+    )
+    abilities: Mapped[List["Ability"]] = relationship(
+        back_populates="niko", passive_deletes=True
+    )
     user: Mapped["User"] = relationship(back_populates="nikos", passive_deletes=True)
 
     @hybrid_property
     def author_name(self):
-        if self.author_id == None:
+        if self.author_id is None:
             return self.author
         else:
-            if self.user == None:
+            if self.user is None:
                 return "Could not find author_name.."
             else:
                 return self.user.username
-
 
     def __init__(self, id, name, description, full_desc, image):
         self.id = id
@@ -51,10 +59,16 @@ class Niko(Base):
     def set_abilities_list(self, lis: list):
         self.abilities = lis
 
+
 class Notd(Base):
     __tablename__ = "notd"
-    niko_id: Mapped[int] = mapped_column(ForeignKey("nikos.id", ondelete="CASCADE"), primary_key=True)
-    chosen_at: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now(), server_onupdate=func.now(), index=True)
+    niko_id: Mapped[int] = mapped_column(
+        ForeignKey("nikos.id", ondelete="CASCADE"), primary_key=True
+    )
+    chosen_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP, server_default=func.now(), server_onupdate=func.now(), index=True
+    )
+
 
 class Ability(Base):
     __tablename__ = "abilities"
@@ -63,7 +77,9 @@ class Ability(Base):
     name: Mapped[str] = mapped_column(String(255))
     niko_id: Mapped[int] = mapped_column(ForeignKey("nikos.id", ondelete="CASCADE"))
 
-    niko: Mapped["Niko"] = relationship(back_populates="abilities", passive_deletes=True)
+    niko: Mapped["Niko"] = relationship(
+        back_populates="abilities", passive_deletes=True
+    )
 
     def __init__(self, id, name, niko_id):
         self.id = id
@@ -93,8 +109,12 @@ class User(Base):
     hashed_pass: Mapped[str] = mapped_column(String(1023))
     is_admin: Mapped[bool] = mapped_column(Boolean)
 
-    nikos: Mapped[List["Niko"]] = relationship(back_populates="user", passive_deletes=True)
-    posts: Mapped[List["Post"]] = relationship(back_populates="user", passive_deletes=True)
+    nikos: Mapped[List["Niko"]] = relationship(
+        back_populates="user", passive_deletes=True
+    )
+    posts: Mapped[List["Post"]] = relationship(
+        back_populates="user", passive_deletes=True
+    )
 
 
 class SubmitUser(Base):

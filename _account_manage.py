@@ -1,10 +1,11 @@
+import getpass
 import os
 import re
+
 from dotenv import load_dotenv
-from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, insert, select
 from passlib.context import CryptContext
-import getpass
+from sqlalchemy import create_engine, insert, select
+from sqlalchemy.orm import Session
 
 from models import User
 
@@ -91,7 +92,7 @@ def edit_account():
     user = session.execute(
         select(User).where(User.username == username)
     ).scalar_one_or_none()
-    if user == None:
+    if user is None:
         print("")
         print("User not found in database!")
         return
@@ -112,7 +113,7 @@ def delete_account():
     user = session.execute(
         select(User).where(User.username == username)
     ).scalar_one_or_none()
-    if user == None:
+    if user is None:
         print("")
         print("User not found in database!")
         return

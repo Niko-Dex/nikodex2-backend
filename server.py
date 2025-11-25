@@ -1,29 +1,26 @@
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+import os
 import re
+from contextlib import asynccontextmanager
+from datetime import datetime, timedelta, timezone
 from typing import Annotated, List
+
+import jwt
 from fastapi import (
-    FastAPI,
     Depends,
-    HTTPException,
+    FastAPI,
     Header,
-    status,
-    UploadFile,
+    HTTPException,
     Response,
-    Form
+    UploadFile,
+    status,
 )
-from dataclasses import dataclass
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-import jwt
 from passlib.context import CryptContext
-from contextlib import asynccontextmanager
-import service
-import models
+from pydantic import BaseModel
+
 import dto
-import os
+import service
 
 tags_metadata = [
     {"name": "nikos"},
@@ -109,7 +106,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         token_data = TokenData(username=username)
     except jwt.InvalidTokenError:
         raise credentials_exception
-    user = service.get_user_by_username(username=token_data.username)
+    user = service.get_user_by_username(username=token_data.username or "")
     if user is None:
         raise credentials_exception
     return user
@@ -148,9 +145,13 @@ def get_all_nikos(sort_by: dto.SortType = dto.SortType.oldest_added):
 def get_random_nikos():
     return service.get_random_niko()
 
+
 @app.get("/nikos/notd", response_model=dto.NikoResponse, tags=["nikos"])
 def get_notd(response: Response):
-    data, refresh = service.get_notd()
+    notd = service.get_notd()
+    if notd is None:
+        raise HTTPException(status_code=status.HTTP_418_IM_A_TEAPOT)
+    data, refresh = notd
     response.headers["X-RefreshAt"] = refresh.astimezone(timezone.utc).isoformat()
     return data
 
@@ -164,8 +165,7 @@ def get_niko_by_name(name="Niko"):
 def get_nikos_page(page=1, count=14, sort_by: dto.SortType = dto.SortType.oldest_added):
     res = service.get_nikos_page(page, count, sort_by)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
     return res
 
 
@@ -173,8 +173,7 @@ def get_nikos_page(page=1, count=14, sort_by: dto.SortType = dto.SortType.oldest
 def get_niko_by_id(id=1):
     res = service.get_niko_by_id(id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
     return res
 
 
@@ -182,8 +181,7 @@ def get_niko_by_id(id=1):
 def get_niko_by_userid(id: int):
     res = service.get_niko_by_userid(id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
     return res
 
 
@@ -191,8 +189,7 @@ def get_niko_by_userid(id: int):
 def get_latest_niko_of_user(user_id: int):
     res = service.get_niko_by_userid(user_id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
     return res[-1].id
 
 
@@ -205,8 +202,7 @@ async def post_niko(
 
     res = service.insert_niko(niko)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -219,8 +215,7 @@ def update_niko(
     res = service.update_niko(id, niko, current_user.id)
     print(res)
     if res["err"]:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
     return res
 
 
@@ -231,8 +226,7 @@ def delete_niko(id: int, current_user: Annotated[User, Depends(get_current_user)
 
     res = service.delete_niko(id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -250,8 +244,7 @@ def get_abilities():
 def get_ability_by_id(id=1):
     res = service.get_ability_by_id(id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -262,11 +255,9 @@ def post_ability(
 ):
     res = service.insert_ability(ability, current_user.id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     if res["err"]:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
     return res
 
 
@@ -278,11 +269,9 @@ def update_ability(
 ):
     res = service.update_ability(id, ability, current_user.id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     if res["err"]:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
     return res
 
 
@@ -290,12 +279,12 @@ def update_ability(
 def delete_ability(id: int, current_user: Annotated[User, Depends(get_current_user)]):
     res = service.delete_ability(id, current_user.id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     if type(res) is dict:
         if res["err"]:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"])
+                status_code=status.HTTP_404_NOT_FOUND, detail=res["msg"]
+            )
     return res
 
 
@@ -308,8 +297,7 @@ def get_all_blogs():
 def get_blog_by_id(id: int):
     res = service.get_blog_by_id(id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -322,8 +310,7 @@ def post_blog(
 
     res = service.post_blog(blog)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -338,8 +325,7 @@ def update_blog(
 
     res = service.update_blog(id, blog)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -350,8 +336,7 @@ def delete_blog(id: int, current_user: Annotated[User, Depends(get_current_user)
 
     res = service.delete_blog(id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -367,8 +352,7 @@ def get_submissions():
 def get_submission_by_id(id: int):
     res = service.get_submission_by_id(id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -380,8 +364,7 @@ def get_submission_by_id(id: int):
 def get_submission_by_userid(user_id: int):
     res = service.get_submissions_by_userid(user_id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -389,8 +372,7 @@ def get_submission_by_userid(user_id: int):
 def get_submission_image(id: int):
     res = service.get_submission_image(id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -398,10 +380,10 @@ def get_submission_image(id: int):
 async def post_submission(
     file: UploadFile,
     current_user: Annotated[User, Depends(get_current_user)],
-    submission: dto.SubmitForm = Depends()
+    submission: dto.SubmitForm = Depends(),
 ):
     res = await service.insert_submission(submission, current_user.id, file)
-    if (res):
+    if res:
         return {"msg": "Inserted submission"}
     else:
         raise HTTPException(
@@ -414,7 +396,7 @@ async def post_submission(
 async def delete_submission(
     id: int, current_user: Annotated[User, Depends(get_current_user)]
 ):
-    if (not current_user.is_admin):
+    if not current_user.is_admin:
         raise auth_err
     service.delete_submission(id)
     return {"msg": "Deleted submission"}
@@ -427,8 +409,7 @@ async def post_user(user: dto.UserChangeRequest):
         return {"msg": "Successfully created user."}
     else:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Couldn't create user."
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Couldn't create user."
         )
 
 
@@ -454,8 +435,10 @@ async def login_token(
 def get_user_by_name(username: str):
     res = service.get_user_by_name(username)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="No user found with that name.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No user found with that name.",
+        )
     return res
 
 
@@ -463,8 +446,7 @@ def get_user_by_name(username: str):
 def get_user_by_id(id: int):
     res = service.get_user_by_id(id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -473,7 +455,8 @@ def get_users_by_namesearch(username: str, page: int = 1, count: int = 14):
     res = service.get_user_by_usersearch(username, page, count)
     if res is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="No users found.")
+            status_code=status.HTTP_404_NOT_FOUND, detail="No users found."
+        )
     return res
 
 
@@ -567,9 +550,7 @@ def get_posts():
 def get_post_by_id(id: int):
     res = service.get_post_id(id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not found."
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found.")
     return res
 
 
@@ -597,7 +578,7 @@ async def post_post(
 ):
     res = await service.insert_post(current_user.id, req, file)
     print(res)
-    if (res["err"]):
+    if res["err"]:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=res["msg"],
@@ -613,7 +594,9 @@ def ping():
 @app.get(
     "/discord_bot/submit_user", response_model=dto.SubmitUserResponse, tags=["bot"]
 )
-def log_user(user_id: str, authorization: Annotated[None, Depends(get_shared_token)]):
+def get_log_user(
+    user_id: str, authorization: Annotated[None, Depends(get_shared_token)]
+):
     res = service.get_submit_user(user_id)
     if res is None:
         raise HTTPException(
