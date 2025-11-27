@@ -2,6 +2,7 @@ import os
 import re
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
+from enum import Enum
 from typing import Annotated, List
 
 import jwt
@@ -60,6 +61,11 @@ class User(BaseModel):
     is_admin: bool
 
 
+class UserType(str, Enum):
+    admin = "admin"
+    user = "user"
+
+
 class UserInDb(User):
     password: str
 
@@ -75,9 +81,9 @@ def get_password_hash(plain_pass):
 def authenticate_user(username: str, password: str):
     user = service.get_user_by_username(username)
     if not user:
-        return False
+        return None
     if not verify_password(password, user.hashed_pass):
-        return False
+        return None
     return user
 
 
@@ -413,12 +419,19 @@ async def post_user(user: dto.UserChangeRequest):
         )
 
 
-@app.post("/token", tags=["auth"])
+@app.post("/token/{type}", tags=["auth"])
 async def login_token(
+    type: UserType,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> Token:
     user = authenticate_user(form_data.username, form_data.password)
-    if not user:
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if type == UserType.admin and not user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -426,7 +439,8 @@ async def login_token(
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.username, "admin": user.is_admin},
+        expires_delta=access_token_expires,
     )
     return Token(access_token=access_token, token_type="bearer")
 
