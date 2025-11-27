@@ -1,0 +1,61 @@
+from typing import Annotated, List
+
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    UploadFile,
+    status,
+)
+
+import services.posts as service
+from common.dto import PostRequestForm, PostResponse, User
+from common.helper import get_current_user
+
+router = APIRouter(prefix="/posts", tags=["posts"])
+
+
+@router.get("", response_model=List[PostResponse])
+def get_posts():
+    res = service.get_posts()
+    return res
+
+
+@router.get("/", response_model=PostResponse)
+def get_post_by_id(id: int):
+    res = service.get_post_id(id)
+    if res is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found.")
+    return res
+
+
+@router.get("/user", response_model=List[PostResponse])
+def get_posts_by_userid(user_id: int):
+    res = service.get_post_userid(user_id)
+    return res
+
+
+@router.get("/image")
+def get_post_image(id: int):
+    res = service.get_post_image(id)
+    if res is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Image file not found!"
+        )
+    return res
+
+
+@router.post("")
+async def post_post(
+    file: UploadFile,
+    current_user: Annotated[User, Depends(get_current_user)],
+    req: PostRequestForm = Depends(),
+):
+    res = await service.insert_post(current_user.id, req, file)
+    print(res)
+    if res["err"]:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=res["msg"],
+        )
+    return res

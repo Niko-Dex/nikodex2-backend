@@ -2,8 +2,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import List
-from pydantic import BaseModel
+
 from fastapi import Form
+from pydantic import BaseModel
 
 
 class UserResponse(BaseModel):
@@ -107,3 +108,28 @@ class PostResponse(BaseModel):
     content: str
     post_datetime: datetime
     user: UserResponse
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: str | None = None
+
+
+class User(BaseModel):
+    id: int
+    username: str
+    description: str
+    is_admin: bool
+
+
+class UserType(str, Enum):
+    admin = "admin"
+    user = "user"
+
+
+class UserInDb(User):
+    password: str

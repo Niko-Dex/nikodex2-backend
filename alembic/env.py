@@ -1,9 +1,11 @@
-from logging.config import fileConfig
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-from alembic import context
 import os
+from logging.config import fileConfig
+
 from dotenv import load_dotenv
+from sqlalchemy import engine_from_config, pool
+
+from alembic import context
+from common.models import Base
 
 load_dotenv()
 
@@ -12,14 +14,18 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-connection_str = "mysql+mysqlconnector://{}:{}@{}:{}/{}" \
-    .format(os.environ['MYSQL_USER'], os.environ['MYSQL_PASS'], os.environ['MYSQL_URI'], os.environ['MYSQL_PORT'], "nikodex")
+connection_str = "mysql+mysqlconnector://{}:{}@{}:{}/{}".format(
+    os.environ["MYSQL_USER"],
+    os.environ["MYSQL_PASS"],
+    os.environ["MYSQL_URI"],
+    os.environ["MYSQL_PORT"],
+    "nikodex",
+)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from models import Base
 target_metadata = Base.metadata
 config.set_main_option("sqlalchemy.url", connection_str)
 
@@ -67,9 +73,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
