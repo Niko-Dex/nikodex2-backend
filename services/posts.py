@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 from PIL import Image
 from sqlalchemy import (
     select,
+    func
 )
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.orm import selectinload
@@ -23,6 +24,24 @@ from services._shared import SessionManager
 def get_posts():
     with SessionManager() as session:
         stmt = select(Post).options(selectinload(Post.user))
+        return session.scalars(stmt).fetchall()
+
+
+def get_posts_count():
+    with SessionManager() as session:
+        return session.query(func.count(Post.id)).one()[0]
+
+
+def get_posts_page(page: int, count: int):
+    with SessionManager() as session:
+        if int(page) < 1:
+            return None
+        stmt = (
+            select(Post)
+            .options(selectinload(Post.user))
+            .offset(int(count) * (int(page) - 1))
+            .limit(int(count))
+        )
         return session.scalars(stmt).fetchall()
 
 

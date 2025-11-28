@@ -107,6 +107,27 @@ def edit_account():
     print("Account edited!")
     return
 
+def make_user_admin():
+    username = ask_username()
+    user = session.execute(
+        select(User).where(User.username == username)
+    ).scalar_one_or_none()
+    if user is None:
+        print("")
+        print("User not found in database!")
+        return
+
+    bool_str = input("Admin or not (true or false):")
+    bool_str = bool_str.lower()
+    if bool_str == "true":
+        user.is_admin = True
+        session.commit()
+    elif bool_str == "false":
+        user.is_admin = False
+        session.commit()
+    else:
+        print("Not a valid option!")
+
 
 def delete_account():
     username = ask_username()
@@ -139,7 +160,8 @@ func_choice = {
     "2": {"func": add_account, "display_name": "Add an admin account"},
     "3": {"func": edit_account, "display_name": "Edit an admin account"},
     "4": {"func": delete_account, "display_name": "Delete an admin account"},
-    "5": {"func": exit_manager, "display_name": "Exit"},
+    "5": {"func": make_user_admin, "display_name": "Change an account's admin status'"},
+    "6": {"func": exit_manager, "display_name": "Exit"},
 }
 
 print("Account manager for Nikodex")

@@ -21,6 +21,18 @@ def get_posts():
     return res
 
 
+@router.get("/count")
+def get_posts_count():
+    res = service.get_posts_count()
+    return res
+
+
+@router.get("/page", response_model=List[PostResponse])
+def get_posts_page(page: int, count: int):
+    res = service.get_posts_page(page, count)
+    return res
+
+
 @router.get("/", response_model=PostResponse)
 def get_post_by_id(id: int):
     res = service.get_post_id(id)
