@@ -66,6 +66,24 @@ def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
     return current_user
 
 
+@router.delete("")
+def delete_user(id: int, current_user: Annotated[User, Depends(get_current_user)]):
+    if not current_user.is_admin or (
+        current_user.id != id and not current_user.is_admin
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden.",
+        )
+    res = service.delete_user(id)
+    if res:
+        return {"msg": "Deleted user."}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found."
+        )
+
+
 @router.put("/me")
 def change_user(
     new_user: UserChangeRequest,

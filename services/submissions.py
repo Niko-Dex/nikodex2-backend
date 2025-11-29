@@ -16,8 +16,8 @@ from common.dto import (
     SubmitForm,
 )
 from common.models import Submission
-from services.images import IMAGE_DIR, MAX_IMG_SIZE
 from services._shared import SessionManager
+from services.images import IMAGE_DIR, MAX_IMG_SIZE
 
 
 def get_submissions():
@@ -81,6 +81,7 @@ async def insert_submission(req: SubmitForm, user_id: int, file: UploadFile):
             full_desc=req.full_desc,
             image=f"{id_str}.png",
             submit_date=datetime.now(),
+            is_blacklisted=req.is_blacklisted,
         )
         session.execute(stmt)
         session.commit()

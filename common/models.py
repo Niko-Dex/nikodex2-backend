@@ -28,6 +28,7 @@ class Niko(Base):
     doc: Mapped[str] = mapped_column(String(255))
     author: Mapped[str] = mapped_column(String(255))
     full_desc: Mapped[str] = mapped_column(String(1023))
+    is_blacklisted: Mapped[bool] = mapped_column(default=False)
     author_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=True
     )
@@ -137,6 +138,7 @@ class Submission(Base):
     description: Mapped[str] = mapped_column(String(255))
     full_desc: Mapped[str] = mapped_column(String(1023))
     image: Mapped[str] = mapped_column(String(1023))
+    is_blacklisted: Mapped[bool] = mapped_column(Boolean(), default=False)
 
 
 class Post(Base):

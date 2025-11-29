@@ -16,8 +16,8 @@ from common.dto import (
     SortType,
 )
 from common.models import Niko, Notd, User
-from services.images import delete_image
 from services._shared import SessionManager
+from services.images import delete_image
 
 
 def get_nikos_wrapper(sort_by: SortType):
@@ -152,6 +152,7 @@ def insert_niko(req: NikoRequest):
             author="",
             full_desc=req.full_desc,
             author_id=req.author_id,
+            is_blacklisted=req.is_blacklisted,
         )
 
         session.execute(stmt)
@@ -188,6 +189,7 @@ def update_niko(id: int, req: NikoRequest, user_id: int):
             entity.name = req.name
             entity.description = req.description
             entity.full_desc = req.full_desc
+            entity.is_blacklisted = req.is_blacklisted
             if req.author_id is not None and req.author_id >= 0:
                 specified_author = session.execute(
                     select(User).where(User.id == req.author_id)

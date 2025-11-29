@@ -24,6 +24,7 @@ class NikoRequest(BaseModel):
     name: str
     description: str
     full_desc: str
+    is_blacklisted: bool
     author_id: int | None
 
 
@@ -55,6 +56,7 @@ class SubmissionRequest(BaseModel):
     name: str
     description: str
     full_desc: str
+    is_blacklisted: bool
 
 
 class SubmissionResponse(SubmissionRequest):
@@ -68,6 +70,7 @@ class SubmitForm:
     name: str = Form()
     description: str = Form()
     full_desc: str = Form()
+    is_blacklisted: bool = Form()
 
 
 class SortType(Enum):

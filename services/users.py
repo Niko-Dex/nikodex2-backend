@@ -45,6 +45,19 @@ def get_user_by_usersearch(username: str, page: int, count: int):
         return session.scalars(stmt).fetchall()
 
 
+def delete_user(id: int):
+    with SessionManager() as session:
+        user = session.execute(select(User).where(User.id == id)).scalar_one_or_none()
+        if user:
+            if user.is_admin:
+                return False
+            session.delete(user)
+            session.commit()
+            return True
+        else:
+            return False
+
+
 def insert_user(req: UserChangeRequest):
     with SessionManager() as session:
         same_name_entity = session.execute(
