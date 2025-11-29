@@ -109,6 +109,6 @@ alembic upgrade head
 3. Run the dev/production server (step 7)
 
 ## Accounts
-As of now, there is only one type of account for Nikodex v2, which is Administrator (or admin for short). These accounts have access to the admin dashboard on the front-end, and can manage data about Nikosonas and Blogs on the database.
+As of now, there are two types of accounts, which are Administrator (or admin for short) and Users. Admin accounts have access to the admin dashboard on the front-end, and can manage data about Nikosonas and Blogs on the database, while Users can only manage their own Nikosonas.
 
-If you wish to create more admin accounts to manage the Nikodex, use the `_account_manage.py` scripts to create, edit, or remove admin accounts.
+If you wish to create more admin accounts to manage the Nikodex, or create normal user accounts, use the `_account_manage.py` scripts to create, edit, or remove accounts.
