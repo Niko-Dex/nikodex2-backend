@@ -123,7 +123,7 @@ def get_niko_by_id(id: int):
             .options(selectinload(Niko.abilities), selectinload(Niko.user))
             .where(Niko.id == id)
         )
-        res = session.scalars(stmt).one()
+        res = session.scalars(stmt).one_or_none()
         return res
 
 
