@@ -1,12 +1,9 @@
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import (
-    FastAPI,
-    Response,
-    status,
-)
+from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from routers import (
     abilities,
@@ -29,6 +26,15 @@ async def lifespan(app: FastAPI):
 origins = os.environ["FASTAPI_ALLOWED_ORIGIN"].split(",")
 
 app = FastAPI(title="NikodexV2 API", lifespan=lifespan)
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code, content={"error": exc.detail}, headers=exc.headers
+    )
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
