@@ -1,3 +1,5 @@
+import re
+
 from passlib.context import CryptContext
 from sqlalchemy import (
     func,
@@ -58,6 +60,10 @@ def delete_user(id: int):
             return False
 
 
+def is_valid_username(username: str):
+    return re.fullmatch(r"[A-Za-z0-9_]{1,32}", username)
+
+
 def insert_user(req: UserChangeRequest):
     with SessionManager() as session:
         same_name_entity = session.execute(
@@ -66,13 +72,13 @@ def insert_user(req: UserChangeRequest):
         if same_name_entity is not None:
             return False
 
-        if len(req.new_username) == 0:
+        if len(req.new_username) == 0 or not is_valid_username(req.new_username):
             return False
 
         if len(req.new_password) == 0:
             return False
 
-        if len(req.new_description) == 0:
+        if len(req.new_description) == 0 or len(req.new_description) > 255:
             return False
 
         stmt = insert(User).values(
@@ -92,10 +98,7 @@ def update_user(username: str, req: UserChangeRequest):
         same_name_entity = session.execute(
             select(User).where(User.username == req.new_username)
         ).scalar_one_or_none()
-        same_description_entity = session.execute(
-            select(User).where(User.description.like(f"%{req.new_description}%"))
-        ).scalar_one_or_none()
-        if same_name_entity is not None and same_description_entity is not None:
+        if same_name_entity is not None:
             return False
 
         entity = session.execute(
@@ -105,12 +108,16 @@ def update_user(username: str, req: UserChangeRequest):
             return False
 
         if len(req.new_username) > 0:
+            if not is_valid_username(req.new_username):
+                return False
             entity.username = req.new_username
 
         if len(req.new_password) > 0:
             entity.hashed_pass = pwd_context.hash(req.new_password)
 
         if len(req.new_description) > 0:
+            if len(req.new_description) > 255:
+                return False
             entity.description = req.new_description
         session.commit()
 
