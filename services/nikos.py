@@ -69,15 +69,15 @@ def get_notd():
         if cnt is None or cnt <= 0:
             return None
 
+        now_ts = datetime.now()
         latest_chosen_notd_stmt = select(Notd).order_by(desc(Notd.chosen_at)).limit(1)
         latest_chosen_notd = session.scalars(latest_chosen_notd_stmt).all()
-        latest_chosen_ts = latest_chosen_notd[0].chosen_at
-        refresh_ts = datetime(
-            latest_chosen_ts.year, latest_chosen_ts.month, latest_chosen_ts.day
-        ) + timedelta(days=1)
-
         if len(latest_chosen_notd) > 0:
-            now_ts = datetime.now()
+            latest_chosen_ts = latest_chosen_notd[0].chosen_at
+            refresh_ts = datetime(
+                latest_chosen_ts.year, latest_chosen_ts.month, latest_chosen_ts.day
+            ) + timedelta(days=1)
+
             # not time to refresh yet
             if now_ts < refresh_ts:
                 return (get_niko_by_id(id=latest_chosen_notd[0].niko_id), refresh_ts)
@@ -103,6 +103,8 @@ def get_notd():
         new_notd_insert_stmt = insert(Notd).values(niko_id=new_notd.id)
         session.execute(new_notd_insert_stmt)
         session.commit()
+
+        refresh_ts = datetime(now_ts.year, now_ts.month, now_ts.day) + timedelta(days=1)
         return (get_niko_by_id(id=new_notd.id), refresh_ts)
 
 
