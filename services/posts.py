@@ -6,10 +6,7 @@ from datetime import datetime
 from fastapi import UploadFile
 from fastapi.responses import FileResponse
 from PIL import Image
-from sqlalchemy import (
-    select,
-    func
-)
+from sqlalchemy import desc, func, select
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.orm import selectinload
 
@@ -17,8 +14,8 @@ from common.dto import (
     PostRequestForm,
 )
 from common.models import Post
-from services.images import IMAGE_DIR, MAX_IMG_SIZE
 from services._shared import SessionManager
+from services.images import IMAGE_DIR, MAX_IMG_SIZE
 
 
 def get_posts():
@@ -39,6 +36,7 @@ def get_posts_page(page: int, count: int):
         stmt = (
             select(Post)
             .options(selectinload(Post.user))
+            .order_by(desc(Post.id))
             .offset(int(count) * (int(page) - 1))
             .limit(int(count))
         )
