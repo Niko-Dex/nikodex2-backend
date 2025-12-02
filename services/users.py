@@ -95,12 +95,6 @@ def insert_user(req: UserChangeRequest):
 
 def update_user(username: str, req: UserChangeRequest):
     with SessionManager() as session:
-        same_name_entity = session.execute(
-            select(User).where(User.username == req.new_username)
-        ).scalar_one_or_none()
-        if same_name_entity is not None:
-            return False
-
         entity = session.execute(
             select(User).where(User.username == username)
         ).scalar_one_or_none()
@@ -108,6 +102,13 @@ def update_user(username: str, req: UserChangeRequest):
             return False
 
         if len(req.new_username) > 0:
+            if req.new_username != username:
+                same_name_entity = session.execute(
+                    select(User).where(User.username == req.new_username)
+                ).scalar_one_or_none()
+                if same_name_entity is not None:
+                    return False
+
             if not is_valid_username(req.new_username):
                 return False
             entity.username = req.new_username
