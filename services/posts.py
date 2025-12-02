@@ -75,6 +75,17 @@ def get_post_image(id: int):
         return FileResponse(path, media_type="image/png")
 
 
+def delete_post(id: int):
+    with SessionManager() as session:
+        entity = session.get(Post, id)
+        if entity is None:
+            return None
+        else:
+            session.delete(entity)
+            session.commit()
+            return entity
+
+
 async def insert_post(user_id: int, req: PostRequestForm, file: UploadFile):
     with SessionManager() as session:
         if not file.content_type or not file.content_type.startswith("image/"):

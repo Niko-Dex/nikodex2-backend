@@ -39,7 +39,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['post_id'], ['posts.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_unique_constraint(None, 'users', ['username'])
+    op.create_unique_constraint("None", 'users', ['username'])
     # ### end Alembic commands ###
 
 
