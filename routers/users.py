@@ -1,4 +1,5 @@
 import re
+from posixpath import curdir
 from typing import Annotated, List
 
 from fastapi import (
@@ -8,9 +9,11 @@ from fastapi import (
     Response,
     status,
 )
+from fastapi.datastructures import UploadFile
+from starlette.types import HTTPExceptionHandler
 
 import services.users as service
-from common.dto import User, UserChangeRequest
+from common.dto import ImgReturnType, User, UserChangeRequest
 from common.helper import get_current_user
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -54,6 +57,51 @@ def get_users_by_namesearch(username: str, page: int = 1, count: int = 14):
             status_code=status.HTTP_404_NOT_FOUND, detail="No users found."
         )
     return res
+
+
+@router.get("/profile_picture")
+def get_profile_picture(id: int):
+    res = service.get_user_profile_picture(id)
+    if not res:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profile Picture doesn't exist.",
+        )
+    return res
+
+
+@router.put("/profile_picture")
+async def put_profile_picture(
+    file: UploadFile,
+    user_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    if current_user.id != user_id or not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden.",
+        )
+    res = await service.update_profile_picture(user_id, file)
+    return res
+
+
+@router.delete("/profile_picture")
+async def delete_profile_picture(
+    user_id: int, current_user: Annotated[User, Depends(get_current_user)]
+):
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden.",
+        )
+    res = service.delete_profile_picture(user_id)
+    if res:
+        return {"msg": "Deleted successfully."}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profile Picture doesn't exist.",
+        )
 
 
 @router.get("/count")

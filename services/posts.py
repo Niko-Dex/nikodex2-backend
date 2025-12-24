@@ -81,6 +81,12 @@ def delete_post(id: int):
         if entity is None:
             return None
         else:
+            path = os.path.join(IMAGE_DIR, f"{entity.image}")
+            try:
+                if os.path.exists(path):
+                    os.remove(path)
+            except:
+                print("Couldn't remove image... Skipping")
             session.delete(entity)
             session.commit()
             return entity

@@ -113,7 +113,11 @@ class User(Base):
     nikos: Mapped[List["Niko"]] = relationship(
         back_populates="user", passive_deletes=True
     )
+    profile_picture: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     posts: Mapped[List["Post"]] = relationship(
+        back_populates="user", passive_deletes=True
+    )
+    comments: Mapped[List["Comment"]] = relationship(
         back_populates="user", passive_deletes=True
     )
 
@@ -150,8 +154,21 @@ class Post(Base):
     title: Mapped[str] = mapped_column(String(255))
     content: Mapped[str] = mapped_column(String(1023))
     image: Mapped[str] = mapped_column(String(1023))
-
+    comments: Mapped[List["Comment"]] = relationship(
+        back_populates="post", passive_deletes=True
+    )
     user: Mapped["User"] = relationship(back_populates="posts", passive_deletes=True)
+
+
+class Comment(Base):
+    __tablename__ = "comments"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    post_id: Mapped[int] = mapped_column(ForeignKey("posts.id", ondelete="CASCADE"))
+    content: Mapped[str] = mapped_column(String(1024))
+    post_date: Mapped[datetime] = mapped_column(DateTime())
+    post: Mapped["Post"] = relationship(back_populates="comments", passive_deletes=True)
+    user: Mapped["User"] = relationship(back_populates="comments", passive_deletes=True)
 
 
 class PostNikoAgenda(Base):

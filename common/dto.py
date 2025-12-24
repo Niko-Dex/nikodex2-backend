@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 
 class UserResponse(BaseModel):
+    id: int
     username: str
 
 
@@ -57,6 +58,19 @@ class SubmissionRequest(BaseModel):
     description: str
     full_desc: str
     is_blacklisted: bool
+
+
+class CommentRequest(BaseModel):
+    content: str
+    post_id: int
+
+
+class CommentResponse(CommentRequest):
+    id: int
+    user: UserResponse
+    author_id: int
+    post_date: datetime
+    content: str
 
 
 class SubmissionResponse(SubmissionRequest):
@@ -127,6 +141,11 @@ class User(BaseModel):
     username: str
     description: str
     is_admin: bool
+
+
+class ImgReturnType(str, Enum):
+    image = "image"
+    niko_id = "niko_id"
 
 
 class UserType(str, Enum):

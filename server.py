@@ -10,6 +10,7 @@ from routers import (
     auth,
     blogs,
     bot,
+    comments,
     images,
     nikos,
     posts,
@@ -49,6 +50,7 @@ app.include_router(bot.router)
 app.include_router(images.router)
 app.include_router(nikos.router)
 app.include_router(posts.router)
+app.include_router(comments.router)
 app.include_router(submissions.router)
 app.include_router(users.router)
 

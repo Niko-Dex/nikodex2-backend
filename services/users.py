@@ -1,20 +1,33 @@
+import io
+import os
 import re
+import uuid
 
+from dotenv import load_dotenv
+from fastapi import UploadFile
+from fastapi.responses import FileResponse
 from passlib.context import CryptContext
+from PIL import Image
 from sqlalchemy import (
+    Update,
     func,
     select,
+    update,
 )
 from sqlalchemy.dialects.mysql import insert
 
 from common.dto import (
+    ImgReturnType,
     SubmitUserRequest,
     UserChangeRequest,
 )
 from common.models import SubmitUser, User
 from services._shared import SessionManager
+from services.images import IMAGE_DIR, MAX_IMG_SIZE
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+load_dotenv()
 
 
 def get_user_count():
@@ -38,6 +51,41 @@ def get_user_by_id(id: int):
     with SessionManager() as session:
         stmt = select(User).where(User.id == id)
         return session.scalars(stmt).one()
+
+
+def get_user_profile_picture(id: int):
+    with SessionManager() as session:
+        stmt = session.execute(select(User).where(User.id == id)).scalar_one_or_none()
+
+        if not stmt:
+            return None
+
+        if stmt.profile_picture is None:
+            return FileResponse("images/default_pfp.png")
+
+        path = os.path.join(IMAGE_DIR, stmt.profile_picture)
+        if stmt.profile_picture is None or not os.path.exists(path):
+            return FileResponse("images/default_pfp.png")
+
+        return FileResponse(path)
+
+
+def delete_profile_picture(user_id: int):
+    with SessionManager() as session:
+        stmt = session.execute(
+            select(User).where(User.id == user_id)
+        ).scalar_one_or_none()
+
+        if not stmt:
+            return False
+        if stmt.profile_picture is not None:
+            path = os.path.join(IMAGE_DIR, stmt.profile_picture)
+            os.remove(path)
+
+        stmt.profile_picture = None
+        session.commit()
+
+        return True
 
 
 def get_user_by_usersearch(username: str, page: int, count: int):
@@ -91,6 +139,44 @@ def insert_user(req: UserChangeRequest):
         session.execute(stmt)
         session.commit()
         return True
+
+
+async def update_profile_picture(user_id: int, file: UploadFile):
+    with SessionManager() as session:
+        user_entity = session.execute(
+            select(User).where(User.id == user_id)
+        ).scalar_one_or_none()
+
+        if not user_entity:
+            return {"msg": "User doesn't exist!", "err": True}
+
+        if not file.content_type or not file.content_type.startswith("image/"):
+            return {"msg": "Not a valid file!", "err": True}
+        if not file.size or file.size > MAX_IMG_SIZE:
+            return {"msg": "File too large!", "err": True}
+
+        data = await file.read()
+        try:
+            image = Image.open(io.BytesIO(data))
+        except Exception:
+            return {"msg": "Failed to open image!", "err": True}
+
+        img_path = f"u_{user_id}_{uuid.uuid4()}.png"
+        if user_entity.profile_picture:
+            old_profile_exists = os.path.join(IMAGE_DIR, user_entity.profile_picture)
+
+            try:
+                if os.path.exists(old_profile_exists):
+                    os.remove(old_profile_exists)
+            except:
+                print("Couldn't remove profile picture. Skipping...")
+
+        image.save(os.path.join(IMAGE_DIR, img_path), format="PNG")
+
+        user_entity.profile_picture = img_path
+        session.commit()
+
+        return {"msg": "Updated profile.", "err": False}
 
 
 def update_user(username: str, req: UserChangeRequest):
