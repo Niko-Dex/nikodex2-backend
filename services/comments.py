@@ -57,6 +57,10 @@ def create_comment_on_post(user_id: int, requestedRequest: CommentRequest):
         ).scalar_one_or_none()
         if not post_check:
             return False
+
+        if requestedRequest.content.__len__() > 300:
+            return False
+
         stmt = insert(Comment).values(
             author_id=user_id,
             post_id=requestedRequest.post_id,
