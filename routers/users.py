@@ -45,8 +45,7 @@ def get_user_by_name(username: str):
 def get_user_by_id(id: int):
     res = service.get_user_by_id(id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 
@@ -77,11 +76,14 @@ async def put_profile_picture(
     user_id: int,
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    if current_user.id != user_id or not current_user.is_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden.",
-        )
+    print(current_user.id)
+    print(user_id)
+    if not current_user.is_admin:
+        if current_user.id != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Forbidden.",
+            )
     res = await service.update_profile_picture(user_id, file)
     return res
 
