@@ -45,7 +45,8 @@ def get_user_by_name(username: str):
 def get_user_by_id(id: int):
     res = service.get_user_by_id(id)
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
     return res
 
 

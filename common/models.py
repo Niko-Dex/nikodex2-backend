@@ -35,7 +35,8 @@ class Niko(Base):
     abilities: Mapped[List["Ability"]] = relationship(
         back_populates="niko", passive_deletes=True
     )
-    user: Mapped["User"] = relationship(back_populates="nikos", passive_deletes=True)
+    user: Mapped["User"] = relationship(
+        back_populates="nikos", passive_deletes=True)
 
     @hybrid_property
     def author_name(self):
@@ -76,7 +77,8 @@ class Ability(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(255))
-    niko_id: Mapped[int] = mapped_column(ForeignKey("nikos.id", ondelete="CASCADE"))
+    niko_id: Mapped[int] = mapped_column(
+        ForeignKey("nikos.id", ondelete="CASCADE"))
 
     niko: Mapped["Niko"] = relationship(
         back_populates="abilities", passive_deletes=True
@@ -113,7 +115,10 @@ class User(Base):
     nikos: Mapped[List["Niko"]] = relationship(
         back_populates="user", passive_deletes=True
     )
-    profile_picture: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    profile_picture: Mapped[str | None] = mapped_column(
+        String(1024), nullable=True)
+    last_comment_at: Mapped[datetime | None] = mapped_column(
+        DateTime(), nullable=True)
     posts: Mapped[List["Post"]] = relationship(
         back_populates="user", passive_deletes=True
     )
@@ -136,7 +141,8 @@ class Submission(Base):
     __tablename__ = "submissions"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"))
     submit_date: Mapped[datetime] = mapped_column(DateTime())
     name: Mapped[str] = mapped_column(String(255))
     description: Mapped[str] = mapped_column(String(255))
@@ -149,7 +155,8 @@ class Post(Base):
     __tablename__ = "posts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"))
     post_datetime: Mapped[datetime] = mapped_column(DateTime())
     title: Mapped[str] = mapped_column(String(255))
     content: Mapped[str] = mapped_column(String(1023))
@@ -157,23 +164,30 @@ class Post(Base):
     comments: Mapped[List["Comment"]] = relationship(
         back_populates="post", passive_deletes=True
     )
-    user: Mapped["User"] = relationship(back_populates="posts", passive_deletes=True)
+    user: Mapped["User"] = relationship(
+        back_populates="posts", passive_deletes=True)
 
 
 class Comment(Base):
     __tablename__ = "comments"
     id: Mapped[int] = mapped_column(primary_key=True)
-    author_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    post_id: Mapped[int] = mapped_column(ForeignKey("posts.id", ondelete="CASCADE"))
+    author_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"))
+    post_id: Mapped[int] = mapped_column(
+        ForeignKey("posts.id", ondelete="CASCADE"))
     content: Mapped[str] = mapped_column(String(1024))
     post_date: Mapped[datetime] = mapped_column(DateTime())
-    post: Mapped["Post"] = relationship(back_populates="comments", passive_deletes=True)
-    user: Mapped["User"] = relationship(back_populates="comments", passive_deletes=True)
+    post: Mapped["Post"] = relationship(
+        back_populates="comments", passive_deletes=True)
+    user: Mapped["User"] = relationship(
+        back_populates="comments", passive_deletes=True)
 
 
 class PostNikoAgenda(Base):
     __tablename__ = "postniko_agenda"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    niko_id: Mapped[int] = mapped_column(ForeignKey("nikos.id", ondelete="CASCADE"))
-    post_id: Mapped[int] = mapped_column(ForeignKey("posts.id", ondelete="CASCADE"))
+    niko_id: Mapped[int] = mapped_column(
+        ForeignKey("nikos.id", ondelete="CASCADE"))
+    post_id: Mapped[int] = mapped_column(
+        ForeignKey("posts.id", ondelete="CASCADE"))

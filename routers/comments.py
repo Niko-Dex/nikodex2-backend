@@ -36,18 +36,20 @@ def delete_comment_on_post(
     if res:
         return {"msg": "Deleted comment."}
     else:
-        raise HTTPException(status_code=res["status_code"], detail=res["message"])
+        raise HTTPException(
+            status_code=res["status_code"], detail=res["message"])
 
 
 @router.post("")
-def create_comment_on_post(
+async def create_comment_on_post(
     commentModel: CommentRequest,
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    res = service.create_comment_on_post(current_user.id, commentModel)
-    if res:
-        return {"msg": "Inserted comment."}
-    else:
+    res = await service.create_comment_on_post(current_user.id, commentModel)
+
+    if not res["success"]:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Couldn't insert comment!"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=res["msg"]
         )
+    else:
+        return {"msg": "Inserted comment."}

@@ -30,6 +30,9 @@ MYSQL_PASS="<mysql_password>"
 MYSQL_URI="<mysql_host_or_url>"
 MYSQL_PORT="<mysql_port>"
 
+# Commenting Rate Limit
+COMMENT_RATE_LIMIT=2
+
 # you may need to pass in the origin of the front-end server here if it's
 # unable to access the back-end. otherwise, leave it BLANK
 FASTAPI_ALLOWED_ORIGIN="<allowed_url_1>,<allowed_url_2>,..."
