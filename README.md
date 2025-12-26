@@ -30,7 +30,8 @@ MYSQL_PASS="<mysql_password>"
 MYSQL_URI="<mysql_host_or_url>"
 MYSQL_PORT="<mysql_port>"
 
-# Commenting Rate Limit
+# Commenting Rate Limit. The number specified is how many minutes users have a delay before they comment a new comment.
+# A value of 1 or 2 is generally recommended.
 COMMENT_RATE_LIMIT=2
 
 # you may need to pass in the origin of the front-end server here if it's
