@@ -67,7 +67,7 @@ def get_user_profile_picture(id: int):
         if stmt.profile_picture is None or not os.path.exists(path):
             return FileResponse("images/default_pfp.png")
 
-        return FileResponse(path)
+        return FileResponse(path, headers={"ETag": stmt.profile_picture})
 
 
 def delete_profile_picture(user_id: int):
