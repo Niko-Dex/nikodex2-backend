@@ -155,10 +155,10 @@ def change_user(
             detail="Password too long (max 128 characters)!",
         )
 
-    if len(new_user.new_description) > 256:
+    if len(new_user.new_description) > 512:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Description too long (max 256 characters)!",
+            detail="Description too long (max 512 characters)!",
         )
 
     res = service.update_user(current_user.username, req=new_user)
