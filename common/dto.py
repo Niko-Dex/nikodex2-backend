@@ -155,3 +155,14 @@ class UserType(str, Enum):
 
 class UserInDb(User):
     password: str
+
+
+class BannerRequest(BaseModel):
+    title: str
+    content: str
+    is_dismissable: bool
+
+
+class BannerResponse(BannerRequest):
+    id: int
+    banner_identifier: str

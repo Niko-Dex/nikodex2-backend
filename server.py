@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from routers import (
     abilities,
     auth,
+    banner,
     blogs,
     bot,
     comments,
@@ -45,6 +46,7 @@ app.add_middleware(
 )
 app.include_router(abilities.router)
 app.include_router(auth.router)
+app.include_router(banner.router)
 app.include_router(blogs.router)
 app.include_router(bot.router)
 app.include_router(images.router)

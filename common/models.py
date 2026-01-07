@@ -13,6 +13,8 @@ from sqlalchemy import (
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
+from sqlalchemy.sql.schema import CheckConstraint
+from sqlalchemy.sql.sqltypes import Integer
 
 
 class Base(DeclarativeBase):
@@ -35,8 +37,7 @@ class Niko(Base):
     abilities: Mapped[List["Ability"]] = relationship(
         back_populates="niko", passive_deletes=True
     )
-    user: Mapped["User"] = relationship(
-        back_populates="nikos", passive_deletes=True)
+    user: Mapped["User"] = relationship(back_populates="nikos", passive_deletes=True)
 
     @hybrid_property
     def author_name(self):
@@ -77,8 +78,7 @@ class Ability(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(255))
-    niko_id: Mapped[int] = mapped_column(
-        ForeignKey("nikos.id", ondelete="CASCADE"))
+    niko_id: Mapped[int] = mapped_column(ForeignKey("nikos.id", ondelete="CASCADE"))
 
     niko: Mapped["Niko"] = relationship(
         back_populates="abilities", passive_deletes=True
@@ -115,10 +115,8 @@ class User(Base):
     nikos: Mapped[List["Niko"]] = relationship(
         back_populates="user", passive_deletes=True
     )
-    profile_picture: Mapped[str | None] = mapped_column(
-        String(1024), nullable=True)
-    last_comment_at: Mapped[datetime | None] = mapped_column(
-        DateTime(), nullable=True)
+    profile_picture: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    last_comment_at: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)
     posts: Mapped[List["Post"]] = relationship(
         back_populates="user", passive_deletes=True
     )
@@ -141,8 +139,7 @@ class Submission(Base):
     __tablename__ = "submissions"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     submit_date: Mapped[datetime] = mapped_column(DateTime())
     name: Mapped[str] = mapped_column(String(255))
     description: Mapped[str] = mapped_column(String(255))
@@ -155,8 +152,7 @@ class Post(Base):
     __tablename__ = "posts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     post_datetime: Mapped[datetime] = mapped_column(DateTime())
     title: Mapped[str] = mapped_column(String(255))
     content: Mapped[str] = mapped_column(String(1023))
@@ -164,30 +160,34 @@ class Post(Base):
     comments: Mapped[List["Comment"]] = relationship(
         back_populates="post", passive_deletes=True
     )
-    user: Mapped["User"] = relationship(
-        back_populates="posts", passive_deletes=True)
+    user: Mapped["User"] = relationship(back_populates="posts", passive_deletes=True)
 
 
 class Comment(Base):
     __tablename__ = "comments"
     id: Mapped[int] = mapped_column(primary_key=True)
-    author_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"))
-    post_id: Mapped[int] = mapped_column(
-        ForeignKey("posts.id", ondelete="CASCADE"))
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    post_id: Mapped[int] = mapped_column(ForeignKey("posts.id", ondelete="CASCADE"))
     content: Mapped[str] = mapped_column(String(1024))
     post_date: Mapped[datetime] = mapped_column(DateTime())
-    post: Mapped["Post"] = relationship(
-        back_populates="comments", passive_deletes=True)
-    user: Mapped["User"] = relationship(
-        back_populates="comments", passive_deletes=True)
+    post: Mapped["Post"] = relationship(back_populates="comments", passive_deletes=True)
+    user: Mapped["User"] = relationship(back_populates="comments", passive_deletes=True)
 
 
 class PostNikoAgenda(Base):
     __tablename__ = "postniko_agenda"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    niko_id: Mapped[int] = mapped_column(
-        ForeignKey("nikos.id", ondelete="CASCADE"))
-    post_id: Mapped[int] = mapped_column(
-        ForeignKey("posts.id", ondelete="CASCADE"))
+    niko_id: Mapped[int] = mapped_column(ForeignKey("nikos.id", ondelete="CASCADE"))
+    post_id: Mapped[int] = mapped_column(ForeignKey("posts.id", ondelete="CASCADE"))
+
+
+class Banner(Base):
+    __tablename__ = "banner"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    title: Mapped[str] = mapped_column(String(120))
+    content: Mapped[str] = mapped_column(String(500))
+    is_dismissable: Mapped[bool] = mapped_column(Boolean())
+    banner_identifier: Mapped[str] = mapped_column(String(100))
+
+    __table_args__ = (CheckConstraint("id = 1", name="one_row_only"),)
