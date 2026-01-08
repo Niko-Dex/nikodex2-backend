@@ -148,11 +148,6 @@ class ImgReturnType(str, Enum):
     niko_id = "niko_id"
 
 
-class UserType(str, Enum):
-    admin = "admin"
-    user = "user"
-
-
 class UserInDb(User):
     password: str
 
