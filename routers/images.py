@@ -29,6 +29,19 @@ async def upload_image(
     return Response(status_code=status.HTTP_200_OK)
 
 
+@router.put("")
+async def put_image(
+    id: int, file: UploadFile, current_user: Annotated[User, Depends(get_current_user)]
+):
+    res = await service.edit_image(id=id, file=file)
+    if not res:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Couldn't update image!",
+        )
+    return Response(status_code=status.HTTP_200_OK)
+
+
 @router.delete("")
 def delete_image(id: int, current_user: Annotated[User, Depends(get_current_user)]):
     res = service.delete_image(id=id)
