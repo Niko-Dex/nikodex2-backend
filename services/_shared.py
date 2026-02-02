@@ -34,7 +34,6 @@ class SessionManager:
         traceback: Optional[TracebackType],
     ):
         if exc_type:
-            print("ERR in DB!")
             print(exc_value)
             self.session.rollback()
             return False
