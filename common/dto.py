@@ -155,9 +155,11 @@ class UserInDb(User):
 class BannerRequest(BaseModel):
     title: str
     content: str
+    banner_color: str
     is_dismissable: bool
 
 
 class BannerResponse(BannerRequest):
     id: int
     banner_identifier: str
+    banner_color: str

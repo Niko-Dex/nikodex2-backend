@@ -20,6 +20,7 @@ def get_banner():
                 "id": 1,
                 "title": "",
                 "content": "",
+                "banner_color": "#ff0000",
                 "is_dismissable": True,
                 "banner_identifier": "0",
             }
@@ -33,6 +34,7 @@ def set_banner(req: BannerRequest):
                 id=1,
                 title=req.title,
                 content=req.content,
+                banner_color=req.banner_color,
                 is_dismissable=req.is_dismissable,
                 banner_identifier=str(uuid.uuid4()),
             )

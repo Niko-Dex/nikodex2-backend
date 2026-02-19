@@ -187,6 +187,7 @@ class Banner(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
     title: Mapped[str] = mapped_column(String(120))
     content: Mapped[str] = mapped_column(String(500))
+    banner_color: Mapped[str] = mapped_column(String(255))
     is_dismissable: Mapped[bool] = mapped_column(Boolean())
     banner_identifier: Mapped[str] = mapped_column(String(100))
 
