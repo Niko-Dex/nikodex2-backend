@@ -131,7 +131,7 @@ def insert_user(req: UserChangeRequest):
             username=req.new_username,
             hashed_pass=pwd_context.hash(req.new_password),
             description=req.new_description,
-            is_admin=False,
+            account_type=AccountType.NORMAL.value,
         )
 
         session.execute(stmt)
