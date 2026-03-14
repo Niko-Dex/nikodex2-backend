@@ -56,22 +56,15 @@ def ask_username():
 
 def ask_account_type() -> AccountType:
     while True:
-        account_type = input("Enter account type (admin, user, dummy): ")
+        account_type = input("Enter account type (admin, user): ")
         output = AccountType.NORMAL
-        if account_type.strip().lower() in ["admin", "user", "dummy"]:
+        if account_type.strip().lower() in ["admin", "user"]:
             match account_type:
                 case "admin":
                     if confirm(
                         "You are creating/changing to an ADMIN user.\nAre you sure?"
                     ):
                         output = AccountType.ADMIN
-                    else:
-                        continue
-                case "dummy":
-                    if confirm(
-                        "You are creating/changing to a DUMMY user, which cannot be logged in like a normal user, and is usually created under specific conditions.\nAre you sure?"
-                    ):
-                        output = AccountType.DUMMY
                     else:
                         continue
             return output
