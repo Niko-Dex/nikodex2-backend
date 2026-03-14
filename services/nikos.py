@@ -137,8 +137,7 @@ def get_niko_by_userid(user_id: int):
             .options(selectinload(Niko.abilities), selectinload(Niko.user))
             .where(Niko.author_id == user_id)
         )
-        res = session.scalars(stmt).fetchall()
-        return res
+        return session.scalars(stmt).fetchall()
 
 
 def get_nikos_count():
@@ -208,13 +207,29 @@ def update_niko(id: int, req: NikoRequest, user_id: int):
             return {"msg": "Unauthorized", "err": True}
 
 
-def delete_niko(id: int):
+def delete_niko(user_id: int, id: int, override: bool):
     with SessionManager() as session:
-        delete_image(id)
-        entity = session.get(Niko, id)
+
+        if not override:
+            entity = session.execute(select(Niko)
+            .options(selectinload(Niko.abilities), selectinload(Niko.user))
+            .where(Niko.id == id and Niko.author_id == user_id)).one_or_none()
+        else:
+            entity = session.get(Niko, id)
+
+
         if entity is None:
             return None
-        else:
-            session.delete(entity)
-            session.commit()
-            return entity
+
+        # Check if it exists in the Notd.
+        if notd_result := session.execute(
+            select(Notd).where(Notd.niko_id == id)
+        ).scalar_one_or_none():
+            session.delete(notd_result)
+        session.commit()
+        
+        delete_image(id)
+        session.delete(entity)
+        session.commit()
+
+        return entity

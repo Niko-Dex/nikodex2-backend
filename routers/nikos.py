@@ -102,12 +102,12 @@ def update_niko(
 
 @router.delete("")
 def delete_niko(id: int, current_user: Annotated[User, Depends(get_current_user)]):
-    if not account_of_type(current_user, AccountType.ADMIN):
-        raise auth_err
-
-    res = service.delete_niko(id)
+    res = service.delete_niko(
+        current_user.id, id, account_of_type(current_user, AccountType.ADMIN)
+    )
     if res is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found.")
+
     return res
 
 
