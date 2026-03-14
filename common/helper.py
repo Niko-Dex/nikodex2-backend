@@ -16,6 +16,7 @@ from passlib.context import CryptContext
 import services.users as service
 from common import dto, models
 from common.dto import TokenData
+from common.helper2 import account_of_type
 from common.models import AccountType
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -68,16 +69,17 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-        if username is None:
+        id = payload.get("sub")
+        if id is None:
             raise credentials_exception
-        token_data = TokenData(username=username)
+        user = service.get_user_by_id(int(id))
+        if user is None:
+            raise credentials_exception
+        if account_of_type(user, AccountType.DUMMY):
+            raise credentials_exception
+        return user
     except jwt.InvalidTokenError:
         raise credentials_exception
-    user = service.get_user_by_username(username=token_data.username or "")
-    if user is None:
-        raise credentials_exception
-    return user
 
 
 async def get_shared_token(authorization: str = Header(...)):

@@ -26,7 +26,7 @@ async def login_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> Token:
     user = authenticate_user(form_data.username, form_data.password)
-    if user is None:
+    if user is None or account_of_type(user, AccountType.DUMMY):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -34,7 +34,7 @@ async def login_token(
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username, "admin": account_of_type(user, AccountType.ADMIN)},
+        data={"sub": str(user.id), "user_type": user.account_type},
         expires_delta=access_token_expires,
     )
     return Token(access_token=access_token, token_type="bearer")
