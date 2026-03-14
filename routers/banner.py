@@ -9,7 +9,8 @@ from starlette.status import HTTP_404_NOT_FOUND
 
 import services.banner as service
 from common.dto import BannerRequest, BannerResponse, User
-from common.helper import auth_err, get_current_user
+from common.helper import AccountType, auth_err, get_current_user
+from common.helper2 import account_of_type
 
 router = APIRouter(prefix="/banner", tags=["banner"])
 
@@ -26,6 +27,6 @@ def get_banner():
 def post_banner(
     banner: BannerRequest, current_user: Annotated[User, Depends(get_current_user)]
 ):
-    if not current_user.is_admin:
+    if not account_of_type(current_user, AccountType.ADMIN):
         raise auth_err
     return service.set_banner(banner)

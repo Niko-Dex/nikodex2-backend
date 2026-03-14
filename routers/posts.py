@@ -10,7 +10,8 @@ from fastapi import (
 
 import services.posts as service
 from common.dto import PostRequestForm, PostResponse, User
-from common.helper import get_current_user
+from common.helper import AccountType, get_current_user
+from common.helper2 import account_of_type
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -37,8 +38,7 @@ def get_posts_page(page: int, count: int):
 def get_post_by_id(id: int):
     res = service.get_post_id(id)
     if res is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found.")
     return res
 
 
@@ -78,14 +78,13 @@ async def post_post(
 def delete_post(id: int, current_user: Annotated[User, Depends(get_current_user)]):
     res = service.get_post_id(id)
     if not res:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not found.")
-    elif res.user.id != current_user.id and not current_user.is_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found.")
+    elif res.user.id != current_user.id and not account_of_type(
+        current_user, AccountType.ADMIN
+    ):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
     response_deletion = service.delete_post(res.id)
     if response_deletion:
         return response_deletion
     else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found.")

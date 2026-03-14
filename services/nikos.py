@@ -15,7 +15,8 @@ from common.dto import (
     NikoRequest,
     SortType,
 )
-from common.models import Niko, Notd, User
+from common.helper2 import account_of_type
+from common.models import AccountType, Niko, Notd, User
 from services._shared import SessionManager
 from services.images import delete_image
 
@@ -178,11 +179,11 @@ def update_niko(id: int, req: NikoRequest, user_id: int):
             return {"msg": "Who are you?", "err": True}
 
         if entity.user is None:
-            if user_entity.is_admin:
+            if account_of_type(user_entity, AccountType.ADMIN):
                 allowed = True
         else:
             if entity.user.id != user_id:
-                if user_entity.is_admin:
+                if account_of_type(user_entity, AccountType.ADMIN):
                     allowed = True
             else:
                 allowed = True

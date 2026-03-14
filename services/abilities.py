@@ -7,7 +7,8 @@ from sqlalchemy.orm import selectinload
 from common.dto import (
     AbilityRequest,
 )
-from common.models import Ability, Niko, User
+from common.helper2 import account_of_type
+from common.models import Ability, AccountType, Niko, User
 from services._shared import SessionManager
 
 
@@ -35,7 +36,7 @@ def insert_ability(req: AbilityRequest, user_id: int):
             return {"msg": "This Niko is not found.", "err": True}
 
         allowed = False
-        if user_entity and user_entity.is_admin:
+        if user_entity and account_of_type(user_entity, AccountType.ADMIN):
             allowed = True
         else:
             if niko_entity.user is None:
@@ -71,7 +72,7 @@ def update_ability(id: int, req: AbilityRequest, user_id: int):
             if entity.niko is None:
                 return {"msg": "This Ability does not belong to a Niko :/", "err": True}
 
-            if user_entity.is_admin:
+            if account_of_type(user_entity, AccountType.ADMIN):
                 allowed = True
             else:
                 if entity.niko.author_id == user_id:
@@ -109,10 +110,13 @@ def delete_ability(id: int, user_id: int):
             return {"msg": "This user does not exist.", "err": True}
 
         if niko_entity.user is None:
-            if user_entity.is_admin:
+            if account_of_type(user_entity, AccountType.ADMIN):
                 allowed = True
         else:
-            if user_entity.is_admin or niko_entity.user.id == user_id:
+            if (
+                account_of_type(user_entity, AccountType.ADMIN)
+                or niko_entity.user.id == user_id
+            ):
                 allowed = True
 
         if allowed:

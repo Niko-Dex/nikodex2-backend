@@ -9,19 +9,17 @@ from fastapi.responses import FileResponse
 from passlib.context import CryptContext
 from PIL import Image
 from sqlalchemy import (
-    Update,
     func,
     select,
-    update,
 )
 from sqlalchemy.dialects.mysql import insert
 
 from common.dto import (
-    ImgReturnType,
     SubmitUserRequest,
     UserChangeRequest,
 )
-from common.models import SubmitUser, User
+from common.helper2 import account_of_type
+from common.models import AccountType, SubmitUser, User
 from services._shared import SessionManager
 from services.images import IMAGE_DIR, MAX_IMG_SIZE
 
@@ -99,7 +97,7 @@ def delete_user(id: int):
     with SessionManager() as session:
         user = session.execute(select(User).where(User.id == id)).scalar_one_or_none()
         if user:
-            if user.is_admin:
+            if account_of_type(user, AccountType.ADMIN):
                 return False
             session.delete(user)
             session.commit()

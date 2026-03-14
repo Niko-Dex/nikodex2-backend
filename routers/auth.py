@@ -15,6 +15,8 @@ from common.helper import (
     authenticate_user,
     create_access_token,
 )
+from common.helper2 import account_of_type
+from common.models import AccountType
 
 router = APIRouter(prefix="/token", tags=["auth"])
 
@@ -32,7 +34,7 @@ async def login_token(
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username, "admin": user.is_admin},
+        data={"sub": user.username, "admin": account_of_type(user, AccountType.ADMIN)},
         expires_delta=access_token_expires,
     )
     return Token(access_token=access_token, token_type="bearer")

@@ -7,7 +7,7 @@ from passlib.context import CryptContext
 from sqlalchemy import create_engine, insert, select
 from sqlalchemy.orm import Session
 
-from common.models import User
+from common.models import AccountType, User
 
 load_dotenv()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -52,6 +52,31 @@ def ask_username():
             return username
         else:
             print("Invalid username!")
+
+
+def ask_account_type() -> AccountType:
+    while True:
+        account_type = input("Enter account type (admin, user, dummy): ")
+        output = AccountType.NORMAL
+        if account_type.strip().lower() in ["admin", "user", "dummy"]:
+            match account_type:
+                case "admin":
+                    if confirm(
+                        "You are creating/changing to an ADMIN user.\nAre you sure?"
+                    ):
+                        output = AccountType.ADMIN
+                    else:
+                        continue
+                case "dummy":
+                    if confirm(
+                        "You are creating/changing to a DUMMY user, which cannot be logged in like a normal user, and is usually created under specific conditions.\nAre you sure?"
+                    ):
+                        output = AccountType.DUMMY
+                    else:
+                        continue
+            return output
+        else:
+            print("Invalid account type!")
 
 
 def confirm(msg: str):
@@ -100,7 +125,7 @@ def list_accounts():
     for user in data:
         print(" " * 2 + f'"{user.username}"')
         print(" " * 4 + f"ID: {user.id}")
-        print(" " * 4 + f"Is admin: {user.is_admin}")
+        print(" " * 4 + f"Account type: {AccountType(user.account_type).name}")
     return
 
 
@@ -110,16 +135,15 @@ def add_account():
     )
     username = ask_username()
     password = ask_pass()
-    is_admin = confirm("Do you want to make this user an admin?")
-    if is_admin:
-        is_admin = confirm("You are creating an ADMIN user.\nAre you sure?")
+    account_type = ask_account_type()
+
     description = input("Enter a description for this user (optional): ")
 
     stmt = insert(User).values(
         username=username,
         hashed_pass=pwd_context.hash(password),
         description=description,
-        is_admin=is_admin,
+        account_type=account_type.value,
     )
     session.execute(stmt)
     session.commit()
@@ -139,7 +163,7 @@ def edit_account():
     new_username = user.username
     new_hashed_pass = user.hashed_pass
     new_description = user.description
-    new_is_admin = user.is_admin
+    new_account_type = AccountType(user.account_type)
 
     change_username = confirm("Do you want to change their USERNAME?")
     if change_username:
@@ -157,22 +181,15 @@ def edit_account():
         print(f"Old description: {user.description}")
         new_description = input("Enter a new description for this user: ")
 
-    change_is_admin = confirm("Do you want to change their ADMIN STATUS?")
-    if change_is_admin:
-        change_is_admin = confirm(
-            f"HOLD UP! You are about to change the ADMIN STATUS for {user.username}{f' (new username is {new_username})' if new_username != user.username else ''}.\nAre you sure?"
-        )
-
-    if change_is_admin:
-        print(
-            f"Current admin status: {'User IS admin' if user.is_admin else 'User IS NOT admin'}"
-        )
-        new_is_admin = confirm("Do you want to make this user ADMIN?")
+    change_account_type = confirm("Do you want to change their ACCOUNT TYPE?")
+    if change_account_type:
+        print(f"Old account type: {AccountType(user.account_type).name}")
+        new_account_type = ask_account_type()
 
     user.username = new_username
     user.hashed_pass = new_hashed_pass
     user.description = new_description
-    user.is_admin = new_is_admin
+    user.account_type = new_account_type.value
     session.commit()
     print("")
     print("Account edited!")

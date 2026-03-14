@@ -140,7 +140,7 @@ class User(BaseModel):
     id: int
     username: str
     description: str
-    is_admin: bool
+    account_type: int
 
 
 class ImgReturnType(str, Enum):

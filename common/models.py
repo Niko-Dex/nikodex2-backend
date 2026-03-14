@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 from typing import List
 
 from sqlalchemy import (
@@ -15,6 +16,13 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from sqlalchemy.sql.schema import CheckConstraint
 from sqlalchemy.sql.sqltypes import Integer
+
+
+class AccountType(Enum):
+    NORMAL = 0
+    ADMIN = 1
+    BANNED = 2  # unused for now
+    DUMMY = 3
 
 
 class Base(DeclarativeBase):
@@ -110,7 +118,8 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(255), unique=True)
     description: Mapped[str] = mapped_column(String(255))
     hashed_pass: Mapped[str] = mapped_column(String(1023))
-    is_admin: Mapped[bool] = mapped_column(Boolean)
+
+    account_type: Mapped[int] = mapped_column(Integer())
 
     nikos: Mapped[List["Niko"]] = relationship(
         back_populates="user", passive_deletes=True
@@ -123,6 +132,16 @@ class User(Base):
     comments: Mapped[List["Comment"]] = relationship(
         back_populates="user", passive_deletes=True
     )
+
+
+class DiscordConnection(Base):
+    __tablename__ = "discord_connections"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    discord_user_id: Mapped[str] = mapped_column(String(255), unique=True)
+    is_banned: Mapped[bool] = mapped_column(Boolean, default=False)
+    ban_reason: Mapped[str] = mapped_column(String(1023), default="")
 
 
 class SubmitUser(Base):

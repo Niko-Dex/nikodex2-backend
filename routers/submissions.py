@@ -10,7 +10,8 @@ from fastapi import (
 
 import services.submissions as service
 from common.dto import SubmissionResponse, SubmitForm, User
-from common.helper import auth_err, get_current_user
+from common.helper import AccountType, auth_err, get_current_user
+from common.helper2 import account_of_type
 
 router = APIRouter(prefix="/submissions", tags=["submissions"])
 
@@ -69,7 +70,7 @@ async def post_submission(
 async def delete_submission(
     id: int, current_user: Annotated[User, Depends(get_current_user)]
 ):
-    if not current_user.is_admin:
+    if not account_of_type(current_user, AccountType.ADMIN):
         raise auth_err
     service.delete_submission(id)
     return {"msg": "Deleted submission"}

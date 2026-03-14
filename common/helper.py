@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, timedelta, timezone
+from pyexpat import model
 from typing import Annotated
 
 import jwt
@@ -13,7 +14,9 @@ from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 
 import services.users as service
+from common import dto, models
 from common.dto import TokenData
+from common.models import AccountType
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 SECRET_KEY = os.environ["SECRET_KEY"]

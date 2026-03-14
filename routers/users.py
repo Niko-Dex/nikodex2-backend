@@ -10,11 +10,11 @@ from fastapi import (
     status,
 )
 from fastapi.datastructures import UploadFile
-from starlette.types import HTTPExceptionHandler
 
 import services.users as service
-from common.dto import ImgReturnType, User, UserChangeRequest
-from common.helper import get_current_user
+from common.dto import User, UserChangeRequest
+from common.helper import AccountType, get_current_user
+from common.helper2 import account_of_type
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -78,7 +78,7 @@ async def put_profile_picture(
 ):
     print(current_user.id)
     print(user_id)
-    if not current_user.is_admin:
+    if not account_of_type(current_user, AccountType.ADMIN):
         if current_user.id != user_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -92,7 +92,7 @@ async def put_profile_picture(
 async def delete_profile_picture(
     user_id: int, current_user: Annotated[User, Depends(get_current_user)]
 ):
-    if not current_user.is_admin:
+    if not account_of_type(current_user, AccountType.ADMIN):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Forbidden.",
@@ -119,8 +119,8 @@ def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
 
 @router.delete("")
 def delete_user(id: int, current_user: Annotated[User, Depends(get_current_user)]):
-    if not current_user.is_admin or (
-        current_user.id != id and not current_user.is_admin
+    if not account_of_type(current_user, AccountType.ADMIN) or (
+        current_user.id != id and not account_of_type(current_user, AccountType.ADMIN)
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
