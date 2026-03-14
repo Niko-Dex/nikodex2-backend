@@ -199,8 +199,12 @@ def update_niko(id: int, req: NikoRequest, user_id: int):
                 if specified_author is None:
                     return {"msg": "Specified author ID does not exist.", "err": True}
                 entity.author_id = req.author_id
-            else:
+                entity.author = ""
+            elif entity.author_id is not None:
                 entity.author_id = None
+                entity.author = req.author_name or ""
+            else:
+                return {"msg": "Author ID or name must be specified.", "err": True}
             session.commit()
             return {"msg": "Updated Niko.", "err": False}
         else:
@@ -209,14 +213,14 @@ def update_niko(id: int, req: NikoRequest, user_id: int):
 
 def delete_niko(user_id: int, id: int, override: bool):
     with SessionManager() as session:
-
         if not override:
-            entity = session.execute(select(Niko)
-            .options(selectinload(Niko.abilities), selectinload(Niko.user))
-            .where(Niko.id == id and Niko.author_id == user_id)).one_or_none()
+            entity = session.execute(
+                select(Niko)
+                .options(selectinload(Niko.abilities), selectinload(Niko.user))
+                .where(Niko.id == id and Niko.author_id == user_id)
+            ).one_or_none()
         else:
             entity = session.get(Niko, id)
-
 
         if entity is None:
             return None
@@ -227,7 +231,7 @@ def delete_niko(user_id: int, id: int, override: bool):
         ).scalar_one_or_none():
             session.delete(notd_result)
         session.commit()
-        
+
         delete_image(id)
         session.delete(entity)
         session.commit()

@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from fastapi import Form
 from pydantic import BaseModel
+from pydantic.fields import Field
 
 
 class UserResponse(BaseModel):
@@ -26,14 +27,14 @@ class NikoRequest(BaseModel):
     description: str
     full_desc: str
     is_blacklisted: bool
-    author_id: int | None
+    author_id: Optional[int] = Field(None)
+    author_name: Optional[str] = Field(None)
 
 
 class NikoResponse(NikoRequest):
     id: int
     abilities: List[AbilityResponse]
     user: UserResponse | None
-    author_name: str
 
 
 class BlogRequest(BaseModel):

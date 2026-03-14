@@ -21,7 +21,6 @@ from sqlalchemy.sql.sqltypes import Integer
 class AccountType(Enum):
     NORMAL = 0
     ADMIN = 1
-    BANNED = 2  # unused for now
     DUMMY = 3
 
 
