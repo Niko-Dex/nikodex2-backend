@@ -9,7 +9,7 @@ from fastapi import (
 
 import services.abilities as service
 from common.dto import AbilityRequest, AbilityResponse, User
-from common.helper import get_current_user
+from common.helper import get_auth_current_user
 
 router = APIRouter(prefix="/abilities", tags=["abilities"])
 
@@ -30,7 +30,7 @@ def get_ability_by_id(id=1):
 @router.post("")
 def post_ability(
     ability: AbilityRequest,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_auth_current_user)],
 ):
     res = service.insert_ability(ability, current_user.id)
     if res is None:
@@ -44,7 +44,7 @@ def post_ability(
 def update_ability(
     id: int,
     ability: AbilityRequest,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_auth_current_user)],
 ):
     res = service.update_ability(id, ability, current_user.id)
     if res is None:
@@ -55,7 +55,9 @@ def update_ability(
 
 
 @router.delete("")
-def delete_ability(id: int, current_user: Annotated[User, Depends(get_current_user)]):
+def delete_ability(
+    id: int, current_user: Annotated[User, Depends(get_auth_current_user)]
+):
     res = service.delete_ability(id, current_user.id)
     if res is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found.")

@@ -11,14 +11,16 @@ from fastapi import (
 
 import services.images as service
 from common.dto import User
-from common.helper import get_current_user
+from common.helper import get_auth_current_user
 
 router = APIRouter(prefix="/image", tags=["images"])
 
 
 @router.post("")
 async def upload_image(
-    id: int, file: UploadFile, current_user: Annotated[User, Depends(get_current_user)]
+    id: int,
+    file: UploadFile,
+    current_user: Annotated[User, Depends(get_auth_current_user)],
 ):
     try:
         await service.upload_image(id=id, file=file)
@@ -32,7 +34,9 @@ async def upload_image(
 
 @router.put("")
 async def put_image(
-    id: int, file: UploadFile, current_user: Annotated[User, Depends(get_current_user)]
+    id: int,
+    file: UploadFile,
+    current_user: Annotated[User, Depends(get_auth_current_user)],
 ):
     try:
         await service.edit_image(id=id, file=file)
@@ -45,7 +49,9 @@ async def put_image(
 
 
 @router.delete("")
-def delete_image(id: int, current_user: Annotated[User, Depends(get_current_user)]):
+def delete_image(
+    id: int, current_user: Annotated[User, Depends(get_auth_current_user)]
+):
     try:
         service.delete_image(id=id)
     except service.ImageError as e:

@@ -9,7 +9,7 @@ from fastapi import (
 
 import services.blogs as service
 from common.dto import BlogRequest, BlogResponse, User
-from common.helper import AccountType, auth_err, get_current_user
+from common.helper import AccountType, auth_err, get_auth_current_user
 from common.helper2 import account_of_type
 
 router = APIRouter(prefix="/blogs", tags=["blogs"])
@@ -30,7 +30,7 @@ def get_blog_by_id(id: int):
 
 @router.post("")
 def post_blog(
-    blog: BlogRequest, current_user: Annotated[User, Depends(get_current_user)]
+    blog: BlogRequest, current_user: Annotated[User, Depends(get_auth_current_user)]
 ):
     if not account_of_type(current_user, AccountType.ADMIN):
         raise auth_err
@@ -45,7 +45,7 @@ def post_blog(
 def update_blog(
     id: int,
     blog: BlogRequest,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_auth_current_user)],
 ):
     if not account_of_type(current_user, AccountType.ADMIN):
         raise auth_err
@@ -57,7 +57,7 @@ def update_blog(
 
 
 @router.delete("")
-def delete_blog(id: int, current_user: Annotated[User, Depends(get_current_user)]):
+def delete_blog(id: int, current_user: Annotated[User, Depends(get_auth_current_user)]):
     if not account_of_type(current_user, AccountType.ADMIN):
         raise auth_err
 

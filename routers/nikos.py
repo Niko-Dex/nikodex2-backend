@@ -11,7 +11,7 @@ from fastapi import (
 
 import services.nikos as service
 from common.dto import NikoRequest, NikoResponse, SortType, User
-from common.helper import AccountType, auth_err, get_current_user
+from common.helper import AccountType, auth_err, get_auth_current_user
 from common.helper2 import account_of_type
 
 router = APIRouter(prefix="/nikos", tags=["nikos"])
@@ -76,7 +76,7 @@ def get_latest_niko_of_user(user_id: int):
 
 @router.post("")
 async def post_niko(
-    niko: NikoRequest, current_user: Annotated[User, Depends(get_current_user)]
+    niko: NikoRequest, current_user: Annotated[User, Depends(get_auth_current_user)]
 ):
     if not account_of_type(current_user, AccountType.ADMIN):
         raise auth_err
@@ -91,7 +91,7 @@ async def post_niko(
 def update_niko(
     id: int,
     niko: NikoRequest,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_auth_current_user)],
 ):
     res = service.update_niko(id, niko, current_user.id)
     print(res)
@@ -101,7 +101,7 @@ def update_niko(
 
 
 @router.delete("")
-def delete_niko(id: int, current_user: Annotated[User, Depends(get_current_user)]):
+def delete_niko(id: int, current_user: Annotated[User, Depends(get_auth_current_user)]):
     res = service.delete_niko(
         current_user.id, id, account_of_type(current_user, AccountType.ADMIN)
     )

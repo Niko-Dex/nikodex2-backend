@@ -10,7 +10,7 @@ from fastapi import (
 
 import services.submissions as service
 from common.dto import SubmissionResponse, SubmitForm, User
-from common.helper import AccountType, auth_err, get_current_user
+from common.helper import AccountType, auth_err, get_auth_current_user
 from common.helper2 import account_of_type
 
 router = APIRouter(prefix="/submissions", tags=["submissions"])
@@ -53,7 +53,7 @@ def get_submission_image(id: int):
 @router.post("")
 async def post_submission(
     file: UploadFile,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_auth_current_user)],
     submission: SubmitForm = Depends(),
 ):
     res = await service.insert_submission(submission, current_user.id, file)
@@ -68,7 +68,7 @@ async def post_submission(
 
 @router.delete("")
 async def delete_submission(
-    id: int, current_user: Annotated[User, Depends(get_current_user)]
+    id: int, current_user: Annotated[User, Depends(get_auth_current_user)]
 ):
     if not account_of_type(current_user, AccountType.ADMIN):
         raise auth_err

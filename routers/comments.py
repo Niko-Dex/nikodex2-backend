@@ -9,7 +9,7 @@ from fastapi import (
 
 import services.comments as service
 from common.dto import CommentRequest, CommentResponse
-from common.helper import get_current_user
+from common.helper import get_auth_current_user
 from common.models import User
 
 router = APIRouter(prefix="/comments", tags=["comments", "posts"])
@@ -30,26 +30,23 @@ def get_all_comments_by_user_id(user_id: int):
 @router.delete("")
 def delete_comment_on_post(
     comment_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_auth_current_user)],
 ):
     res = service.delete_comment_on_post(current_user, comment_id)
     if res:
         return {"msg": "Deleted comment."}
     else:
-        raise HTTPException(
-            status_code=res["status_code"], detail=res["message"])
+        raise HTTPException(status_code=res["status_code"], detail=res["message"])
 
 
 @router.post("")
 async def create_comment_on_post(
     commentModel: CommentRequest,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_auth_current_user)],
 ):
     res = await service.create_comment_on_post(current_user.id, commentModel)
 
     if not res["success"]:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=res["msg"]
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=res["msg"])
     else:
         return {"msg": "Inserted comment."}

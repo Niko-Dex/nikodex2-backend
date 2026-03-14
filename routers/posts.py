@@ -10,7 +10,7 @@ from fastapi import (
 
 import services.posts as service
 from common.dto import PostRequestForm, PostResponse, User
-from common.helper import AccountType, get_current_user
+from common.helper import AccountType, get_auth_current_user
 from common.helper2 import account_of_type
 
 router = APIRouter(prefix="/posts", tags=["posts"])
@@ -61,7 +61,7 @@ def get_post_image(id: int):
 @router.post("")
 async def post_post(
     file: UploadFile,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_auth_current_user)],
     req: PostRequestForm = Depends(),
 ):
     res = await service.insert_post(current_user.id, req, file)
@@ -75,7 +75,7 @@ async def post_post(
 
 
 @router.delete("")
-def delete_post(id: int, current_user: Annotated[User, Depends(get_current_user)]):
+def delete_post(id: int, current_user: Annotated[User, Depends(get_auth_current_user)]):
     res = service.get_post_id(id)
     if not res:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found.")

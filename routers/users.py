@@ -13,7 +13,7 @@ from fastapi.datastructures import UploadFile
 
 import services.users as service
 from common.dto import User, UserChangeRequest
-from common.helper import AccountType, get_current_user
+from common.helper import AccountType, get_auth_current_user
 from common.helper2 import account_of_type
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -32,7 +32,7 @@ async def post_user(user: UserChangeRequest):
 
 @router.post("/dummy")
 async def post_dummy_user(
-    user: UserChangeRequest, current_user: User = Depends(get_current_user)
+    user: UserChangeRequest, current_user: User = Depends(get_auth_current_user)
 ):
     if not account_of_type(current_user, AccountType.ADMIN):
         raise HTTPException(
@@ -93,7 +93,7 @@ def get_profile_picture(id: int):
 async def put_profile_picture(
     file: UploadFile,
     user_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_auth_current_user)],
 ):
     print(current_user.id)
     print(user_id)
@@ -109,7 +109,7 @@ async def put_profile_picture(
 
 @router.delete("/profile_picture")
 async def delete_profile_picture(
-    user_id: int, current_user: Annotated[User, Depends(get_current_user)]
+    user_id: int, current_user: Annotated[User, Depends(get_auth_current_user)]
 ):
     if not account_of_type(current_user, AccountType.ADMIN):
         raise HTTPException(
@@ -132,12 +132,12 @@ def get_user_count():
 
 
 @router.get("/me", response_model=User)
-def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
+def get_user_me(current_user: Annotated[User, Depends(get_auth_current_user)]):
     return current_user
 
 
 @router.delete("")
-def delete_user(id: int, current_user: Annotated[User, Depends(get_current_user)]):
+def delete_user(id: int, current_user: Annotated[User, Depends(get_auth_current_user)]):
     if not account_of_type(current_user, AccountType.ADMIN) or (
         current_user.id != id and not account_of_type(current_user, AccountType.ADMIN)
     ):
@@ -157,7 +157,7 @@ def delete_user(id: int, current_user: Annotated[User, Depends(get_current_user)
 @router.put("/me")
 def change_user(
     new_user: UserChangeRequest,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_auth_current_user)],
 ):
     username_pattern = r"^[A-Za-z0-9_]{1,32}$"
     if len(new_user.new_username.strip()) > 0 and not bool(
