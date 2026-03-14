@@ -110,7 +110,7 @@ def is_valid_username(username: str):
     return re.fullmatch(r"[A-Za-z0-9_]{1,32}", username)
 
 
-def insert_user(req: UserChangeRequest):
+def insert_user(req: UserChangeRequest, account_type: AccountType):
     with SessionManager() as session:
         same_name_entity = session.execute(
             select(User).where(User.username == req.new_username)
@@ -131,7 +131,7 @@ def insert_user(req: UserChangeRequest):
             username=req.new_username,
             hashed_pass=pwd_context.hash(req.new_password),
             description=req.new_description,
-            account_type=AccountType.NORMAL.value,
+            account_type=account_type.value,
         )
 
         session.execute(stmt)

@@ -21,12 +21,31 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 @router.post("")
 async def post_user(user: UserChangeRequest):
-    res = service.insert_user(user)
+    res = service.insert_user(user, AccountType.NORMAL)
     if res:
         return {"msg": "Successfully created user."}
     else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Couldn't create user."
+        )
+
+
+@router.post("/dummy")
+async def post_dummy_user(
+    user: UserChangeRequest, current_user: User = Depends(get_current_user)
+):
+    if not account_of_type(current_user, AccountType.ADMIN):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can create dummy users.",
+        )
+    res = service.insert_user(user, AccountType.DUMMY)
+    if res:
+        return {"msg": "Successfully created dummy user."}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Couldn't create dummy user.",
         )
 
 
